@@ -2,7 +2,7 @@
 generated TypeScript client (pnpm gen:api in apps/web)."""
 
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
 
 # ---------- shared ----------
@@ -85,7 +85,7 @@ class GlobalSettings(BaseModel):
 class UpdateSettingsRequest(BaseModel):
     timezone: Optional[str] = None
     ai_prompt: Optional[str] = None
-    newsletter_email: Optional[EmailStr | str] = None
+    newsletter_email: Optional[str] = None
 
 
 class AccountsResponse(BaseModel):

@@ -1,0 +1,2005 @@
+{
+  "components": {
+    "schemas": {
+      "AccountStat": {
+        "properties": {
+          "account": {
+            "title": "Account",
+            "type": "string"
+          },
+          "avg_likes": {
+            "title": "Avg Likes",
+            "type": "number"
+          },
+          "avg_views": {
+            "title": "Avg Views",
+            "type": "number"
+          },
+          "posts": {
+            "title": "Posts",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "account",
+          "posts",
+          "avg_likes",
+          "avg_views"
+        ],
+        "title": "AccountStat",
+        "type": "object"
+      },
+      "AccountsResponse": {
+        "properties": {
+          "accounts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Accounts",
+            "type": "array"
+          },
+          "max_accounts": {
+            "title": "Max Accounts",
+            "type": "integer"
+          },
+          "verified_accounts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Verified Accounts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "accounts",
+          "verified_accounts",
+          "max_accounts"
+        ],
+        "title": "AccountsResponse",
+        "type": "object"
+      },
+      "AddAccountsRequest": {
+        "properties": {
+          "handles": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Handles",
+            "type": "array"
+          }
+        },
+        "required": [
+          "handles"
+        ],
+        "title": "AddAccountsRequest",
+        "type": "object"
+      },
+      "BillingUsageResponse": {
+        "properties": {
+          "credits": {
+            "$ref": "#/components/schemas/CreditState"
+          },
+          "plan": {
+            "title": "Plan",
+            "type": "string"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/UsageCounts"
+          }
+        },
+        "required": [
+          "plan",
+          "usage",
+          "credits"
+        ],
+        "title": "BillingUsageResponse",
+        "type": "object"
+      },
+      "ChatMessage": {
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "ChatMessage",
+        "type": "object"
+      },
+      "ChatRequest": {
+        "properties": {
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ChatMessage"
+            },
+            "minItems": 1,
+            "title": "Messages",
+            "type": "array"
+          }
+        },
+        "required": [
+          "messages"
+        ],
+        "title": "ChatRequest",
+        "type": "object"
+      },
+      "ChatResponse": {
+        "properties": {
+          "credits": {
+            "$ref": "#/components/schemas/CreditState"
+          },
+          "message": {
+            "$ref": "#/components/schemas/ChatMessage"
+          }
+        },
+        "required": [
+          "message",
+          "credits"
+        ],
+        "title": "ChatResponse",
+        "type": "object"
+      },
+      "CheckoutRequest": {
+        "properties": {
+          "price_id": {
+            "title": "Price Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "price_id"
+        ],
+        "title": "CheckoutRequest",
+        "type": "object"
+      },
+      "CreditState": {
+        "properties": {
+          "monthly_left": {
+            "title": "Monthly Left",
+            "type": "integer"
+          },
+          "monthly_limit": {
+            "title": "Monthly Limit",
+            "type": "integer"
+          },
+          "prepaid_left": {
+            "title": "Prepaid Left",
+            "type": "integer"
+          },
+          "prepaid_limit": {
+            "title": "Prepaid Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "monthly_left",
+          "prepaid_left",
+          "monthly_limit",
+          "prepaid_limit"
+        ],
+        "title": "CreditState",
+        "type": "object"
+      },
+      "FeedResponse": {
+        "properties": {
+          "audio_url": {
+            "default": "",
+            "title": "Audio Url",
+            "type": "string"
+          },
+          "is_demo": {
+            "default": false,
+            "title": "Is Demo",
+            "type": "boolean"
+          },
+          "last_generation_time": {
+            "default": "",
+            "title": "Last Generation Time",
+            "type": "string"
+          },
+          "last_generation_time_local": {
+            "default": "",
+            "title": "Last Generation Time Local",
+            "type": "string"
+          },
+          "raw_data_sources": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Raw Data Sources",
+            "type": "array"
+          },
+          "summary_html": {
+            "default": "",
+            "title": "Summary Html",
+            "type": "string"
+          },
+          "timezone": {
+            "default": "America/New_York",
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "title": "FeedResponse",
+        "type": "object"
+      },
+      "GenerationCostResponse": {
+        "properties": {
+          "blockers": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Blockers",
+            "type": "array"
+          },
+          "can_generate": {
+            "title": "Can Generate",
+            "type": "boolean"
+          },
+          "cost": {
+            "title": "Cost",
+            "type": "integer"
+          },
+          "credits": {
+            "$ref": "#/components/schemas/CreditState"
+          }
+        },
+        "required": [
+          "cost",
+          "credits",
+          "can_generate"
+        ],
+        "title": "GenerationCostResponse",
+        "type": "object"
+      },
+      "GenerationStatus": {
+        "properties": {
+          "current_stage": {
+            "default": "",
+            "title": "Current Stage",
+            "type": "string"
+          },
+          "end_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Time"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "stages_completed": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Stages Completed",
+            "type": "array"
+          },
+          "start_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Time"
+          },
+          "status": {
+            "default": "",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "GenerationStatus",
+        "type": "object"
+      },
+      "GlobalSettings": {
+        "properties": {
+          "ai_prompt": {
+            "default": "",
+            "title": "Ai Prompt",
+            "type": "string"
+          },
+          "newsletter_email": {
+            "default": "",
+            "title": "Newsletter Email",
+            "type": "string"
+          },
+          "timezone": {
+            "default": "America/New_York",
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "title": "GlobalSettings",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "ImportAccountsRequest": {
+        "properties": {
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source"
+        ],
+        "title": "ImportAccountsRequest",
+        "type": "object"
+      },
+      "ImportAccountsResponse": {
+        "properties": {
+          "accounts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Accounts",
+            "type": "array"
+          },
+          "imported": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Imported",
+            "type": "array"
+          },
+          "skipped_due_to_limit": {
+            "default": 0,
+            "title": "Skipped Due To Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "imported",
+          "accounts"
+        ],
+        "title": "ImportAccountsResponse",
+        "type": "object"
+      },
+      "MeResponse": {
+        "properties": {
+          "avatar": {
+            "default": "",
+            "title": "Avatar",
+            "type": "string"
+          },
+          "created_at": {
+            "default": "",
+            "title": "Created At",
+            "type": "string"
+          },
+          "credits": {
+            "$ref": "#/components/schemas/CreditState"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "name": {
+            "default": "",
+            "title": "Name",
+            "type": "string"
+          },
+          "onboarded": {
+            "default": false,
+            "title": "Onboarded",
+            "type": "boolean"
+          },
+          "onboarding_step": {
+            "default": 0,
+            "title": "Onboarding Step",
+            "type": "integer"
+          },
+          "plan": {
+            "title": "Plan",
+            "type": "string"
+          },
+          "plan_info": {
+            "$ref": "#/components/schemas/PlanInfo"
+          },
+          "tos_accepted": {
+            "default": false,
+            "title": "Tos Accepted",
+            "type": "boolean"
+          },
+          "uid": {
+            "title": "Uid",
+            "type": "string"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/UsageCounts"
+          }
+        },
+        "required": [
+          "uid",
+          "email",
+          "plan",
+          "plan_info",
+          "usage",
+          "credits"
+        ],
+        "title": "MeResponse",
+        "type": "object"
+      },
+      "Message": {
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "Message",
+        "type": "object"
+      },
+      "PlanInfo": {
+        "properties": {
+          "cancel_at_period_end": {
+            "default": false,
+            "title": "Cancel At Period End",
+            "type": "boolean"
+          },
+          "current_period_end": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Period End"
+          },
+          "current_period_start": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Period Start"
+          },
+          "period": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "PlanInfo",
+        "type": "object"
+      },
+      "PlanPublic": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "max_credits": {
+            "title": "Max Credits",
+            "type": "integer"
+          },
+          "max_followers": {
+            "title": "Max Followers",
+            "type": "integer"
+          },
+          "max_tweets_per_generation": {
+            "title": "Max Tweets Per Generation",
+            "type": "integer"
+          },
+          "price_id_month": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Id Month"
+          },
+          "price_id_year": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Id Year"
+          },
+          "price_month": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Month"
+          },
+          "price_year": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Year"
+          }
+        },
+        "required": [
+          "id",
+          "max_followers",
+          "max_tweets_per_generation",
+          "max_credits"
+        ],
+        "title": "PlanPublic",
+        "type": "object"
+      },
+      "PlansResponse": {
+        "properties": {
+          "plans": {
+            "items": {
+              "$ref": "#/components/schemas/PlanPublic"
+            },
+            "title": "Plans",
+            "type": "array"
+          }
+        },
+        "required": [
+          "plans"
+        ],
+        "title": "PlansResponse",
+        "type": "object"
+      },
+      "RegisterRequest": {
+        "properties": {
+          "avatar": {
+            "default": "",
+            "title": "Avatar",
+            "type": "string"
+          },
+          "is_google_auth": {
+            "default": false,
+            "title": "Is Google Auth",
+            "type": "boolean"
+          },
+          "name": {
+            "default": "",
+            "title": "Name",
+            "type": "string"
+          },
+          "tos_accepted": {
+            "default": false,
+            "title": "Tos Accepted",
+            "type": "boolean"
+          }
+        },
+        "title": "RegisterRequest",
+        "type": "object"
+      },
+      "RegisterResponse": {
+        "properties": {
+          "already_registered": {
+            "default": false,
+            "title": "Already Registered",
+            "type": "boolean"
+          },
+          "created": {
+            "title": "Created",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "created"
+        ],
+        "title": "RegisterResponse",
+        "type": "object"
+      },
+      "SourceDataResponse": {
+        "properties": {
+          "per_account": {
+            "items": {
+              "$ref": "#/components/schemas/AccountStat"
+            },
+            "title": "Per Account",
+            "type": "array"
+          },
+          "rows": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/TimelinePoint"
+            },
+            "title": "Timeline",
+            "type": "array"
+          },
+          "total_likes": {
+            "title": "Total Likes",
+            "type": "integer"
+          },
+          "total_posts": {
+            "title": "Total Posts",
+            "type": "integer"
+          },
+          "total_views": {
+            "title": "Total Views",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_posts",
+          "total_likes",
+          "total_views",
+          "per_account",
+          "timeline",
+          "rows"
+        ],
+        "title": "SourceDataResponse",
+        "type": "object"
+      },
+      "StartGenerationRequest": {
+        "properties": {
+          "fetch_latest": {
+            "default": true,
+            "title": "Fetch Latest",
+            "type": "boolean"
+          },
+          "prompt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt"
+          },
+          "skip_audio": {
+            "default": false,
+            "title": "Skip Audio",
+            "type": "boolean"
+          },
+          "skip_email": {
+            "default": false,
+            "title": "Skip Email",
+            "type": "boolean"
+          }
+        },
+        "title": "StartGenerationRequest",
+        "type": "object"
+      },
+      "TimelinePoint": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "time": {
+            "title": "Time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "time",
+          "count"
+        ],
+        "title": "TimelinePoint",
+        "type": "object"
+      },
+      "UpdateMeRequest": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "onboarded": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onboarded"
+          },
+          "onboarding_step": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onboarding Step"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          },
+          "tos_accepted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tos Accepted"
+          }
+        },
+        "title": "UpdateMeRequest",
+        "type": "object"
+      },
+      "UpdateSettingsRequest": {
+        "properties": {
+          "ai_prompt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Prompt"
+          },
+          "newsletter_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Newsletter Email"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          }
+        },
+        "title": "UpdateSettingsRequest",
+        "type": "object"
+      },
+      "UrlResponse": {
+        "properties": {
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "title": "UrlResponse",
+        "type": "object"
+      },
+      "UsageCounts": {
+        "properties": {
+          "n_chat_messages": {
+            "default": 0,
+            "title": "N Chat Messages",
+            "type": "integer"
+          },
+          "n_followers_scraped": {
+            "default": 0,
+            "title": "N Followers Scraped",
+            "type": "integer"
+          },
+          "n_generations": {
+            "default": 0,
+            "title": "N Generations",
+            "type": "integer"
+          },
+          "n_newsletters_sent": {
+            "default": 0,
+            "title": "N Newsletters Sent",
+            "type": "integer"
+          }
+        },
+        "title": "UsageCounts",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "VerifyAccountsResponse": {
+        "properties": {
+          "not_found": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Not Found",
+            "type": "array"
+          },
+          "verified_accounts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Verified Accounts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "verified_accounts",
+          "not_found"
+        ],
+        "title": "VerifyAccountsResponse",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "API wrapping the FeedTLDR pipeline (scrape, summarize, narrate, email). Authenticated endpoints expect a Firebase ID token as a Bearer token.",
+    "title": "FeedTLDR API",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/healthz": {
+      "get": {
+        "operationId": "healthz_healthz_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Healthz Healthz Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Healthz",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/v1/auth/register": {
+      "post": {
+        "description": "Create the Stripe customer + Firestore document for a freshly created\nFirebase Auth user. The client creates the Auth user first (Firebase JS\nSDK), then calls this with its ID token. Idempotent.",
+        "operationId": "register_v1_auth_register_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Register",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/billing/checkout": {
+      "post": {
+        "operationId": "create_checkout_v1_billing_checkout_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UrlResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Checkout",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/v1/billing/plans": {
+      "get": {
+        "description": "Public plan catalog for the pricing page. Price IDs match STRIPE_ENV.",
+        "operationId": "get_plans_v1_billing_plans_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlansResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Plans",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/v1/billing/portal": {
+      "post": {
+        "operationId": "create_portal_v1_billing_portal_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UrlResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Portal",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/v1/billing/usage": {
+      "get": {
+        "operationId": "get_usage_v1_billing_usage_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingUsageResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Usage",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/v1/chat": {
+      "post": {
+        "operationId": "chat_v1_chat_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Chat",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/v1/demo/feed": {
+      "get": {
+        "description": "Public demo summary (the default_user document), used by the marketing\nsite and the logged-out preview.",
+        "operationId": "get_demo_feed_v1_demo_feed_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Demo Feed",
+        "tags": [
+          "feed"
+        ]
+      }
+    },
+    "/v1/feed": {
+      "get": {
+        "operationId": "get_feed_v1_feed_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Feed",
+        "tags": [
+          "feed"
+        ]
+      }
+    },
+    "/v1/feed/source-data": {
+      "get": {
+        "operationId": "get_source_data_v1_feed_source_data_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceDataResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Source Data",
+        "tags": [
+          "feed"
+        ]
+      }
+    },
+    "/v1/generations": {
+      "post": {
+        "operationId": "start_generation_v1_generations_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartGenerationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Generation",
+        "tags": [
+          "generations"
+        ]
+      }
+    },
+    "/v1/generations/cost": {
+      "get": {
+        "operationId": "generation_cost_v1_generations_cost_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "fetch_latest",
+            "required": false,
+            "schema": {
+              "default": true,
+              "title": "Fetch Latest",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip_audio",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Skip Audio",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationCostResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generation Cost",
+        "tags": [
+          "generations"
+        ]
+      }
+    },
+    "/v1/generations/status": {
+      "get": {
+        "description": "The polling seam: reads the same pipeline_status document the pipeline\nwrites stage transitions to (poll every 5-8s, like the legacy dialog).",
+        "operationId": "generation_status_v1_generations_status_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generation Status",
+        "tags": [
+          "generations"
+        ]
+      }
+    },
+    "/v1/me": {
+      "delete": {
+        "description": "Delete the account: confirmation email, then Firebase Auth + Firestore\n(parity with the legacy profile delete flow).",
+        "operationId": "delete_me_v1_me_delete",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Me",
+        "tags": [
+          "me"
+        ]
+      },
+      "get": {
+        "operationId": "get_me_v1_me_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Me",
+        "tags": [
+          "me"
+        ]
+      },
+      "patch": {
+        "operationId": "update_me_v1_me_patch",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Me",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/v1/settings": {
+      "get": {
+        "operationId": "get_settings_v1_settings_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlobalSettings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Settings",
+        "tags": [
+          "settings"
+        ]
+      },
+      "put": {
+        "operationId": "update_settings_v1_settings_put",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlobalSettings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Settings",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/settings/accounts": {
+      "get": {
+        "operationId": "get_accounts_v1_settings_accounts_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Accounts",
+        "tags": [
+          "settings"
+        ]
+      },
+      "post": {
+        "operationId": "add_accounts_v1_settings_accounts_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddAccountsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Accounts",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/settings/accounts/import": {
+      "post": {
+        "operationId": "import_accounts_v1_settings_accounts_import_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportAccountsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportAccountsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Import Accounts",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/settings/accounts/verify": {
+      "post": {
+        "operationId": "verify_accounts_v1_settings_accounts_verify_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyAccountsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Verify Accounts",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/settings/accounts/{handle}": {
+      "delete": {
+        "operationId": "delete_account_v1_settings_accounts__handle__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "handle",
+            "required": true,
+            "schema": {
+              "title": "Handle",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Account",
+        "tags": [
+          "settings"
+        ]
+      }
+    }
+  }
+}
