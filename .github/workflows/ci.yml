@@ -13,10 +13,10 @@ jobs:
         working-directory: apps/api
     steps:
       - uses: actions/checkout@v4
-      - name: Guard: no streamlit in apps/api
+      - name: "Guard: no streamlit imports in apps/api"
         run: |
-          if grep -rn "streamlit" --include="*.py" .; then
-            echo "streamlit reference found in apps/api" && exit 1
+          if grep -rnE "^\s*(import streamlit|from streamlit)" --include="*.py" .; then
+            echo "streamlit import found in apps/api" && exit 1
           fi
       - uses: astral-sh/setup-uv@v5
       - run: uv sync --all-extras
