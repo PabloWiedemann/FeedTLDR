@@ -16,9 +16,12 @@ from backend.emails_module.utils_sendgrid import send_free_plan_end_notification
 
 
 load_dotenv()
-# apps/api root (this file lives in worker/), so Firebase credentials resolve
-# to apps/api/credentials/ exactly like the legacy repo-root gen_script.py did.
-os.environ["PROJECT_DIR"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Default to the apps/api root (this file lives in worker/) so Firebase
+# credentials resolve like the legacy repo-root gen_script.py did; an explicit
+# PROJECT_DIR env (e.g. /etc + CREDENTIALS_DIR=secrets on Render) wins.
+os.environ.setdefault(
+    "PROJECT_DIR", os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
 
 from backend.run_pipeline import run_flow_for_user
 

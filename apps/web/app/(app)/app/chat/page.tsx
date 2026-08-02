@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowUp, CircleNotch } from "@phosphor-icons/react";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useChat, useMe, type ChatMessage } from "@/lib/hooks";
@@ -101,10 +102,16 @@ export default function ChatPage() {
                 className={
                   message.role === "user"
                     ? "ms-auto max-w-[85%] rounded-3xl rounded-br-lg bg-primary px-4 py-2.5 text-sm text-primary-foreground"
-                    : "me-auto max-w-[85%] rounded-3xl rounded-bl-lg border bg-card px-4 py-2.5 text-sm whitespace-pre-wrap"
+                    : "me-auto max-w-[85%] rounded-3xl rounded-bl-lg border bg-card px-4 py-3 text-sm"
                 }
               >
-                {message.content}
+                {message.role === "assistant" ? (
+                  <div className="chat-prose">
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  </div>
+                ) : (
+                  message.content
+                )}
               </li>
             ))}
             {chat.isPending && (
