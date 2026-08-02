@@ -15,19 +15,26 @@ def load_env():
 
 
 def pytest_collection_modifyitems(config, items):
-    """Skip live-integration tests when their API keys are absent (same
-    convention as the require_api_keys fixture, extended to the Apify and
-    SendGrid suites so key-less environments like CI stay green)."""
+    """Live-integration suites (real Apify scrapes that cost money, real
+    email sends) run ONLY when explicitly opted in with RUN_LIVE_TESTS=1
+    AND their API keys are present. Everything else always runs."""
     load_dotenv()
+    live_enabled = os.environ.get("RUN_LIVE_TESTS") == "1"
     key_requirements = {
         "test_twitter_scraper": ["APIFY_API_KEY"],
-        "test_utils_sendgrid": ["SENDGRID_API_KEY"],
+        "test_utils_sendgrid": ["RESEND_API_KEY"],
     }
     for item in items:
         for module_part, keys in key_requirements.items():
             if module_part in item.nodeid:
                 missing = [k for k in keys if not os.environ.get(k)]
-                if missing:
+                if not live_enabled:
+                    item.add_marker(
+                        pytest.mark.skip(
+                            reason="Live integration test: set RUN_LIVE_TESTS=1 to run"
+                        )
+                    )
+                elif missing:
                     item.add_marker(
                         pytest.mark.skip(
                             reason=f"Missing required API keys: {', '.join(missing)}"

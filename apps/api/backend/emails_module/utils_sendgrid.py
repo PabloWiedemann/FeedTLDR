@@ -1,6 +1,11 @@
+"""Email sending. Transport migrated from SendGrid to Resend (2026-08-01, a
+sanctioned exception to the backend freeze: the SendGrid trial expired and
+newsletters were failing). Function names, signatures, and the email templates
+are unchanged; only send_email's transport and the sender address moved.
+Sender domain: mail.feedtldr.com (verified in Resend)."""
+
 import os
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+import requests
 from dotenv import load_dotenv
 import traceback
 from utils import get_logger
@@ -17,33 +22,46 @@ from backend.emails_module.email_template import (
 
 logger = get_logger("main_logger")
 
+RESEND_API_URL = "https://api.resend.com/emails"
+DEFAULT_FROM = "FeedTLDR <no-reply@mail.feedtldr.com>"
+
 
 def send_email(
     target_email,
     content,
     subject="FeedTLDR Notification",
-    from_email="no-reply@feedtldr.com",
+    from_email=DEFAULT_FROM,
 ):
     """
     Send an email to the given email address with the given content.
     """
-    message = Mail(
-        from_email=from_email,
-        to_emails=target_email,
-        subject=subject,
-        html_content=content,
-    )
-
     try:
         load_dotenv()
-        sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
-        response = sg.send(message)
+        api_key = os.environ.get("RESEND_API_KEY")
+        if not api_key:
+            logger.error("Email sending failed: RESEND_API_KEY is not set")
+            return False
+
+        response = requests.post(
+            RESEND_API_URL,
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "from": from_email,
+                "to": [target_email],
+                "subject": subject,
+                "html": content,
+            },
+            timeout=30,
+        )
         logger.info(f"Email sent status code: {response.status_code}")
 
-        # Check if the status code is 202 (Accepted)
-        if int(response.status_code) == 202:
+        if response.status_code == 200:
             return True
         else:
+            logger.error(f"Email sending failed: {response.text[:300]}")
             return False
 
     except Exception as e:
@@ -62,7 +80,6 @@ def send_generation_success_email(target_email):
         target_email,
         content,
         subject="Your Feed Summary Has Been Generated",
-        from_email="no-reply@feedtldr.com",
     )
 
 
@@ -76,7 +93,6 @@ def send_newsletter_subscription_success_email(target_email):
         target_email,
         content,
         subject="Welcome to FeedTLDR's Daily Newsletter",
-        from_email="no-reply@feedtldr.com",
     )
 
 
@@ -90,7 +106,6 @@ def send_unsubscribe_confirmation_email(target_email):
         target_email,
         content,
         subject="Unsubscribed from FeedTLDR's Daily Newsletter",
-        from_email="no-reply@feedtldr.com",
     )
 
 
@@ -104,7 +119,6 @@ def send_delete_account_email(target_email):
         target_email,
         content,
         subject="Your FeedTLDR Account Has Been Deleted",
-        from_email="no-reply@feedtldr.com",
     )
 
 
@@ -118,7 +132,6 @@ def send_feed_summary_email(target_email, summary, audio_url=None):
         target_email,
         content,
         subject="Your Feed Summary",
-        from_email="no-reply@feedtldr.com",
     )
     return success
 
@@ -133,25 +146,5 @@ def send_free_plan_end_notification(target_email):
         target_email,
         content,
         subject="Your FeedTLDR Free Trial Has Ended",
-        from_email="no-reply@feedtldr.com",
     )
     return success
-
-
-def test_send_summary_email():
-    # Read the summary HTML file
-    summary_path = "/Users/pablowiedemann/Documents/xDev/MyFeedTLDR/feedtldr_streamlit/backend/data/pablo@test.com/outputs/summary.html"
-    audio_url = "https://storage.googleapis.com/feedtldr.firebasestorage.app/users/pablo%40test.com_v932xfN0RxMjRKd2VzRVOgMToXI2/latest/summary.mp3"
-    try:
-        with open(summary_path, "r") as file:
-            summary_html = file.read()
-
-        # Send the email
-        test_email = "wablomann@gmail.com"
-        send_feed_summary_email(test_email, summary_html, audio_url=audio_url)
-        print("✅ Test email sent successfully")
-
-    except FileNotFoundError:
-        print("❌ Summary HTML file not found")
-    except Exception as e:
-        print(f"❌ Error sending test email: {str(e)}")
