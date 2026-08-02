@@ -11,6 +11,9 @@ load_dotenv()
 _API_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.environ.setdefault("PROJECT_DIR", _API_ROOT)
 
+import threading  # noqa: E402
+import time  # noqa: E402
+
 import stripe  # noqa: E402
 from fastapi import FastAPI  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
@@ -54,6 +57,28 @@ def startup() -> None:
             f"Firebase not initialized at startup ({e}); "
             "endpoints needing it will return 503 until credentials are in place"
         )
+
+    # Cost-saving single-service mode: RUN_WORKER=1 runs the newsletter daemon
+    # inside the API process instead of a separate Render worker service.
+    # Trade-off: an API deploy interrupts an in-flight newsletter run (it is
+    # retried on the daemon's next hourly pass). Unset to run them separately.
+    if os.environ.get("RUN_WORKER") == "1":
+        def _start_newsletter_daemon() -> None:
+            try:
+                from worker import daemon as newsletter_daemon
+
+                threading.Thread(
+                    target=newsletter_daemon.check_and_add_users, daemon=True
+                ).start()
+                time.sleep(10)  # same startup stagger as the standalone worker
+                threading.Thread(
+                    target=newsletter_daemon.process_users, daemon=True
+                ).start()
+                logger.info("✅ Newsletter daemon running inside API (RUN_WORKER=1)")
+            except Exception as e:
+                logger.error(f"Failed to start newsletter daemon: {e}")
+
+        threading.Thread(target=_start_newsletter_daemon, daemon=True).start()
 
 
 @app.get("/healthz", tags=["health"])
