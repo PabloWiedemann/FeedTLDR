@@ -37,10 +37,16 @@ app = FastAPI(
     ),
 )
 
-_web_origin = os.environ.get("WEB_ORIGIN", "http://localhost:3000")
+# WEB_ORIGIN accepts a comma-separated list, e.g.
+# "https://feedtldr.com,https://www.feedtldr.com,https://feedtldr-web.onrender.com"
+_web_origins = [
+    origin.strip()
+    for origin in os.environ.get("WEB_ORIGIN", "http://localhost:3000").split(",")
+    if origin.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[_web_origin, "http://localhost:3000"],
+    allow_origins=[*_web_origins, "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
