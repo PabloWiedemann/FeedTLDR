@@ -40,4 +40,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
+      - name: "Guard: tokens only, no hard-coded design values"
+        run: pnpm check:tokens
       - run: pnpm build

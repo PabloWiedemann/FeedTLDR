@@ -10,11 +10,11 @@ export const metadata: Metadata = { title: "Privacy Policy" };
 export default function PrivacyPage() {
   return (
     <main className="mx-auto w-full max-w-3xl px-6 pt-6 pb-24">
-      <h1 className="mb-6 text-3xl font-semibold">Privacy Policy</h1>
+      <h1 className="mb-6 text-heading">Privacy Policy</h1>
       <iframe
         src="/legal/privacy-policy.html"
         title="FeedTLDR privacy policy"
-        className="h-[70dvh] w-full rounded-3xl border bg-card"
+        className="h-[70dvh] w-full rounded-card border bg-card"
       />
     </main>
   );

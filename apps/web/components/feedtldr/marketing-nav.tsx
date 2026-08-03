@@ -11,7 +11,7 @@ export function MarketingNav() {
       <nav aria-label="Main" className="flex items-center gap-6">
         <Link
           href="/pricing"
-          className="rounded-full text-sm font-medium outline-none transition-colors duration-150 hover:text-muted-foreground focus-visible:ring-[3px] focus-visible:ring-ring/45"
+          className="rounded-full text-sm font-medium outline-none transition-colors duration-150 hover:text-muted-foreground focus-ring"
         >
           Pricing
         </Link>

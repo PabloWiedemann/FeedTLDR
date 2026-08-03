@@ -2,7 +2,10 @@
 generated TypeScript client (pnpm gen:api in apps/web)."""
 
 from typing import Optional
+
 from pydantic import BaseModel, Field
+
+from api.constants import DEFAULT_TIMEZONE
 
 
 # ---------- shared ----------
@@ -43,12 +46,27 @@ class UsageCounts(BaseModel):
     n_chat_messages: int = 0
     n_followers_scraped: int = 0
 
+    @classmethod
+    def from_plan_usage(cls, usage: dict) -> "UsageCounts":
+        """Read the counters out of one plan's plan_usage sub-document."""
+        return cls(**{name: usage.get(name, 0) for name in cls.model_fields})
+
 
 class CreditState(BaseModel):
     monthly_left: int
     prepaid_left: int
     monthly_limit: int
     prepaid_limit: int
+
+    @classmethod
+    def from_state(cls, state) -> "CreditState":
+        """From the api.deps.CreditState the dependencies hand out."""
+        return cls(
+            monthly_left=state.monthly_left,
+            prepaid_left=state.prepaid_left,
+            monthly_limit=state.monthly_limit,
+            prepaid_limit=state.prepaid_limit,
+        )
 
 
 class MeResponse(BaseModel):
@@ -77,7 +95,7 @@ class UpdateMeRequest(BaseModel):
 # ---------- settings ----------
 
 class GlobalSettings(BaseModel):
-    timezone: str = "America/New_York"
+    timezone: str = DEFAULT_TIMEZONE
     ai_prompt: str = ""
     newsletter_email: str = ""
 
@@ -121,7 +139,7 @@ class FeedResponse(BaseModel):
     audio_url: str = ""
     last_generation_time: str = ""
     last_generation_time_local: str = ""
-    timezone: str = "America/New_York"
+    timezone: str = DEFAULT_TIMEZONE
     raw_data_sources: list[str] = []
 
 

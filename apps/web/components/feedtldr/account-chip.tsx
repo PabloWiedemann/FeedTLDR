@@ -41,7 +41,7 @@ export function AccountChip({
           type="button"
           onClick={() => onRemove(handle)}
           aria-label={`Remove ${handle}`}
-          className="grid size-5 place-items-center rounded-full transition-colors duration-150 outline-none hover:bg-foreground/10 focus-visible:ring-2 focus-visible:ring-ring/45 active:scale-[0.96]"
+          className="grid size-5 place-items-center rounded-full transition-colors duration-150 outline-none hover:bg-foreground/10 focus-visible:ring-2 focus-visible:ring-ring/45 press"
         >
           <X className="size-3" />
         </button>

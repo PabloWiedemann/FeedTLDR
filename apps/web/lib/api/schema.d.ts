@@ -230,7 +230,7 @@ export interface paths {
         /**
          * Generation Status
          * @description The polling seam: reads the same pipeline_status document the pipeline
-         *     writes stage transitions to (poll every 5-8s, like the legacy dialog).
+         *     writes stage transitions to.
          */
         get: operations["generation_status_v1_generations_status_get"];
         put?: never;

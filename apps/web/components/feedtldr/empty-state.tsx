@@ -31,9 +31,9 @@ export function EmptyState({
           className="h-32 w-auto opacity-90"
         />
       )}
-      <h2 className="text-xl font-semibold">{title}</h2>
+      <h2 className="text-section">{title}</h2>
       {description && (
-        <p className="max-w-sm text-sm text-muted-foreground" style={{ textWrap: "pretty" }}>
+        <p className="max-w-sm text-sm text-muted-foreground text-pretty">
           {description}
         </p>
       )}

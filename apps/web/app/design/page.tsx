@@ -18,8 +18,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
@@ -32,6 +38,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { AccountChip } from "@/components/feedtldr/account-chip";
 import { AppBar } from "@/components/feedtldr/app-bar";
 import { AudioPill } from "@/components/feedtldr/audio-pill";
@@ -39,6 +46,11 @@ import { CreditBadge } from "@/components/feedtldr/credit-badge";
 import { EmptyState } from "@/components/feedtldr/empty-state";
 import { GenerationProgress } from "@/components/feedtldr/generation-progress";
 import { Logo } from "@/components/feedtldr/logo";
+import { Notice } from "@/components/feedtldr/notice";
+import { OnboardingSteps } from "@/components/feedtldr/onboarding-steps";
+import { PageHeader } from "@/components/feedtldr/page-header";
+import { SourceDataTable } from "@/components/feedtldr/source-data-table";
+import { Spinner } from "@/components/feedtldr/spinner";
 import { StatCard } from "@/components/feedtldr/stat-card";
 import { SummaryProse } from "@/components/feedtldr/summary-prose";
 import { TagInput, type TagItem } from "@/components/feedtldr/tag-input";
@@ -59,6 +71,27 @@ tool announced in-editor generation for both editing and creation.</p>
   <li><a href="#">x.com/example/status/3</a></li>
 </ul>`;
 
+const ONBOARDING_STEPS = ["Accounts", "Verify", "Newsletter"] as const;
+
+const SAMPLE_ROWS = [
+  {
+    userName: "karpathy",
+    createdAt: "2026-08-02 07:12",
+    text: "A short note on why small models keep surprising us.",
+    url: "https://x.com/example/status/1",
+    likeCount: 4821,
+    viewCount: 291043,
+  },
+  {
+    userName: "simonw",
+    createdAt: "2026-08-02 06:48",
+    text: "Weeknotes: shipping a tiny tool that summarizes my own feed.",
+    url: null,
+    likeCount: 612,
+    viewCount: 20488,
+  },
+];
+
 function Section({
   title,
   children,
@@ -68,7 +101,7 @@ function Section({
 }) {
   return (
     <section className="flex flex-col gap-5 border-t pt-10">
-      <h2 className="text-xl font-semibold">{title}</h2>
+      <h2 className="text-section">{title}</h2>
       {children}
     </section>
   );
@@ -89,7 +122,7 @@ export default function DesignGallery() {
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-16">
       <header className="flex flex-col gap-2">
-        <h1 className="text-4xl font-semibold">Design gallery</h1>
+        <h1 className="text-display-lg">Design gallery</h1>
         <p className="text-muted-foreground">
           Every FeedTLDR component in every state. Tokens and rules live in
           docs/DESIGN.md.
@@ -122,35 +155,124 @@ export default function DesignGallery() {
         </div>
       </Section>
 
+      <Section title="Type scale">
+        <div className="flex flex-col gap-4">
+          <p className="text-display-xl">Display xl</p>
+          <p className="text-display-lg">Display lg</p>
+          <p className="text-heading">Heading</p>
+          <p className="text-title">Title</p>
+          <p className="text-section">Section</p>
+          <p>Body</p>
+          <p className="text-sm text-muted-foreground">Body small</p>
+        </div>
+      </Section>
+
+      <Section title="Shape and elevation">
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="grid size-24 place-items-center rounded-full border bg-card text-xs">
+            pill
+          </div>
+          <div className="grid size-24 place-items-center rounded-card border bg-card text-xs">
+            card
+          </div>
+          <div className="grid size-24 place-items-center rounded-field border bg-card text-xs">
+            field
+          </div>
+          <div className="grid size-24 place-items-center rounded-card bg-card text-xs shadow-lift">
+            lift
+          </div>
+          <div className="grid size-24 place-items-center rounded-card bg-card text-xs shadow-overlay">
+            overlay
+          </div>
+        </div>
+      </Section>
+
       <Section title="Inputs and forms">
-        <div className="grid max-w-md gap-5">
-          <div className="grid gap-2">
-            <Label htmlFor="demo-input">Email</Label>
+        <FieldGroup className="max-w-md">
+          <Field>
+            <FieldLabel htmlFor="demo-input">Email</FieldLabel>
             <Input id="demo-input" placeholder="you@example.com" />
-            <p className="text-xs text-muted-foreground">
+            <FieldDescription className="text-xs">
               We send the daily summary here.
-            </p>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="demo-invalid">With error</Label>
+            </FieldDescription>
+          </Field>
+          <Field data-invalid>
+            <FieldLabel htmlFor="demo-invalid">With error</FieldLabel>
             <Input id="demo-invalid" aria-invalid placeholder="not-an-email" />
-            <p className="text-xs font-medium text-destructive">
-              Enter a valid email address.
-            </p>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="demo-textarea">Custom AI prompt</Label>
+            <FieldError>Enter a valid email address.</FieldError>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="demo-disabled">Disabled</FieldLabel>
+            <Input id="demo-disabled" disabled placeholder="Not editable" />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="demo-textarea">Custom AI prompt</FieldLabel>
             <Textarea
               id="demo-textarea"
               placeholder="Tell the AI what to focus on…"
               rows={3}
             />
-          </div>
-          <div className="flex items-center gap-3">
+          </Field>
+          <Field orientation="horizontal">
+            <FieldLabel htmlFor="demo-switch">Fetch latest posts</FieldLabel>
             <Switch id="demo-switch" defaultChecked />
-            <Label htmlFor="demo-switch">Fetch latest posts</Label>
-          </div>
+          </Field>
+        </FieldGroup>
+      </Section>
+
+      <Section title="Toggle group">
+        <ToggleGroup
+          type="single"
+          defaultValue="month"
+          aria-label="Billing interval"
+          className="bg-secondary p-1"
+        >
+          <ToggleGroupItem value="month">Monthly</ToggleGroupItem>
+          <ToggleGroupItem value="year">Yearly</ToggleGroupItem>
+        </ToggleGroup>
+      </Section>
+
+      <Section title="Notices">
+        <div className="flex flex-col gap-3">
+          <Notice tone="info" filled title="This is a demo summary.">
+            <p>Generate your first summary to replace it.</p>
+          </Notice>
+          <Notice tone="warning" filled>
+            Your plan allows up to 10 accounts.
+          </Notice>
+          <Notice tone="success" filled>
+            All accounts verified.
+          </Notice>
+          <Notice tone="error">Verify at least one account first.</Notice>
         </div>
+      </Section>
+
+      <Section title="Busy states">
+        <div className="flex flex-wrap items-center gap-6">
+          <Spinner label="Loading" className="size-5 text-muted-foreground" />
+          <Button disabled>
+            <Spinner /> Starting…
+          </Button>
+        </div>
+      </Section>
+
+      <Section title="Page header">
+        <PageHeader
+          title="Today's Feed"
+          description="Generated on 2 August 2026, 07:04 CEST"
+        />
+      </Section>
+
+      <Section title="Onboarding steps">
+        <div className="flex flex-col gap-6">
+          <OnboardingSteps steps={ONBOARDING_STEPS} current={0} />
+          <OnboardingSteps steps={ONBOARDING_STEPS} current={1} />
+          <OnboardingSteps steps={ONBOARDING_STEPS} current={2} />
+        </div>
+      </Section>
+
+      <Section title="Source data table">
+        <SourceDataTable rows={SAMPLE_ROWS} />
       </Section>
 
       <Section title="Account chips + tag input">
@@ -194,7 +316,7 @@ export default function DesignGallery() {
       </Section>
 
       <Section title="App bar">
-        <div className="rounded-3xl border bg-background">
+        <div className="rounded-card border bg-background">
           <AppBar
             email="pablo@example.com"
             name="Pablo"
@@ -241,7 +363,7 @@ export default function DesignGallery() {
             <SheetTrigger asChild>
               <Button variant="outline">Open settings sheet</Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-full max-w-[520px] bg-background">
+            <SheetContent side="left" className="w-full max-w-sheet bg-background">
               <SheetHeader>
                 <SheetTitle>Settings</SheetTitle>
               </SheetHeader>

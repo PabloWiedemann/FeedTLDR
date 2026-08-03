@@ -39,43 +39,52 @@ Warm monochrome + ink, with white cards on cream. Color is scarce: the accent pa
 
 Semantic pastels (chips/badges only, per minimalist-ui): pale green `#EDF3EC`/text `#346538` (verified), pale red `#FDEBEC`/text `#9F2F2D` (failed/not found), pale yellow `#FBF3DB`/text `#956400` (pending/unverified), pale blue `#E1F3FE`/text `#1F6C9F` (info).
 
+`--primary-hover` (`#333330`) is the one hover shade for filled ink buttons.
+
 Rules: one accent family per page (Color Consistency Lock). No gradients, no colored section backgrounds, no glow shadows. Backgrounds may carry a barely-there radial warmth (`radial-gradient`, opacity ≤ 0.03) on marketing pages only.
 
-Implementation: define as CSS variables in `globals.css` mapped to shadcn/ui semantic names (`--background`, `--card`, `--border`, ...) via Tailwind v4 `@theme`. Never hard-code hex in components.
+Implementation: declared once in `:root` in **OKLCH** (the format shadcn prescribes), then mapped to the shadcn/ui semantic names via Tailwind v4 `@theme inline`. Components use the generated utilities (`bg-pastel-green`), never the raw variable. Never hard-code a colour in a component — `pnpm check:tokens` fails the build if you do (docs/ENGINEERING.md §3.1).
 
 ## 3. Typography
 
 - **Family:** Poppins (matches the mocks' geometric sans) via `next/font/google`, weights 400/500/600. Fallback: `system-ui, "Segoe UI", sans-serif`. Mono (kbd, code, metadata): `Geist Mono` or `JetBrains Mono`. No serif anywhere.
 - **Root:** `antialiased` on the root layout. `text-wrap: balance` on headings, `text-wrap: pretty` on descriptions.
 
-| Style | Spec | Use |
-| --- | --- | --- |
-| `display-xl` | 56–68px / 1.05 / 600 / -0.02em | Landing hero ("Stay Informed…") |
-| `display-lg` | 40–48px / 1.1 / 600 / -0.02em | Page titles ("Today's Feed") |
-| `title` | 24px / 1.2 / 600 | Card titles, dialog titles |
-| `section` | 18–20px / 1.3 / 600 | Feed section headlines |
-| `body-lg` | 18px / 1.6 / 400 | Landing blurbs |
-| `body` | 16px / 1.6 / 400 | Default UI + summary prose |
-| `body-sm` | 14px / 1.5 / 400 | Helper text, meta |
-| `caption` | 12.5px / 1.4 / 500 / +0.02em | Labels, chips (sentence case, not all-caps) |
+Size, line-height, tracking and weight travel together as one token, so a heading is never assembled from three utilities. The scale is fluid: `clamp()` replaces `sm:`/`lg:` size jumps.
 
-Rules: summary prose capped at `65ch`. Timestamps, credit counts, and prices use `tabular-nums`. Inputs are ≥16px on mobile (`text-base sm:text-sm`) to prevent iOS zoom. Headings ≤ 2 lines in heroes. Body text never lighter than weight 400.
+| Token | Spec | Use |
+| --- | --- | --- |
+| `text-display-xl` | clamp 48–68px / 1.05 / 600 / -0.02em | Landing hero ("Stay Informed…") |
+| `text-display-lg` | clamp 36–48px / 1.1 / 600 / -0.02em | Page titles ("Today's Feed", "Pricing") |
+| `text-heading` | clamp 30–36px / 1.15 / 600 / -0.01em | Marketing section headings, sub-page titles |
+| `text-title` | 24px / 1.2 / 600 | Card titles, dialog titles |
+| `text-section` | 18px / 1.3 / 600 | Feed section headlines, gallery sections |
+| `body` (default) | 16px / 1.6 / 400 | Default UI + summary prose |
+| `text-sm` | 14px / 1.5 / 400 | Helper text, meta |
+| `text-xs` | 12px / 1.4 | Labels, chips (sentence case, not all-caps) |
+
+Rules: summary prose capped at `max-w-prose` (65ch, `--container-prose`). Timestamps, credit counts, and prices use `tabular-nums`. Inputs are ≥16px on mobile (`text-base sm:text-sm`) to prevent iOS zoom. Headings ≤ 2 lines in heroes. Body text never lighter than weight 400. Use `text-balance` / `text-pretty`, never an inline `textWrap` style.
 
 ## 4. Shape, borders, elevation
 
 **Shape system (locked, documented per the Shape Consistency Lock):**
 
-- Interactive pills: buttons, chips, audio pill, badge = `rounded-full`
-- Containers: cards, sheet, dialogs = `rounded-3xl` (24px)
-- Inputs, textareas, kbd: `rounded-xl` (12px)
+- Interactive pills: buttons, chips, toggles, audio pill, badge = `rounded-full`
+- Containers: cards, sheet, dialogs, chat bubbles = `rounded-card` (24px, `--radius-card`)
+- Inputs, textareas, popovers, kbd: `rounded-field` (12px, `--radius-field`)
 - Nested surfaces follow concentric radius: outer = inner + padding
 
-**Borders & elevation:** flat by default. Cards are `bg-card` with `border border-border` (1px) and no shadow, sitting on the cream canvas. Elevation exists in exactly two places: overlays (sheet/dialog: `shadow-[0_24px_64px_rgba(28,27,24,0.10)]`) and hover-lift on interactive cards (`0 2px 8px rgba(28,27,24,0.04)`). Never Tailwind `shadow-md/lg/xl` defaults. Dividers inside content (feed sections) are 1px `--border` hairlines; between unrelated groups prefer whitespace over lines (gap between groups ≥ 2× gap within).
+**Borders & elevation:** flat by default. Cards are `bg-card` with `border border-border` (1px) and no shadow, sitting on the cream canvas. Elevation is two tokens and nothing else:
+
+- `shadow-overlay` — sheet, dialog, dropdown, select, tooltip
+- `shadow-lift` — hover-lift on interactive cards, active tab pill
+
+Tailwind's default `shadow-xs/sm/md/lg/xl` are banned and fail `pnpm check:tokens`. Dividers inside content (feed sections) are 1px `--border` hairlines; between unrelated groups prefer whitespace over lines (gap between groups ≥ 2× gap within).
 
 ## 5. Spacing & layout
 
 - Spacing scale: Tailwind default (4px base). Section rhythm on marketing pages: `py-24`–`py-32`. App pages: `py-10`–`py-16`.
-- Content containers: marketing `max-w-6xl`, app content column `max-w-3xl` (the mock's summary is a single centered column), settings sheet `max-w-[520px]`.
+- Content containers: marketing `max-w-6xl`, app content column `max-w-3xl` (the mock's summary is a single centered column), settings sheet `max-w-sheet` (520px, `--container-sheet`), prose `max-w-prose`.
 - Layout margins: ≥16px inline on mobile; controls never touch viewport edges; media may bleed.
 - Alignment: left-aligned headers and content (the mocks are left-aligned; avoid centered hero stacks). Landing hero is a split layout: text left, mascot right, collapsing to single column under `md`.
 - Progressive disclosure: anything scrollable shows a peeking next item (16–32px) or a disclosure control.
@@ -83,9 +92,9 @@ Rules: summary prose capped at `65ch`. Timestamps, credit counts, and prices use
 
 ## 6. Motion
 
-Quiet and functional. Easing `cubic-bezier(0.16, 1, 0.3, 1)`, durations 150–300ms (600ms only for scroll-entry on marketing pages).
+Quiet and functional. Easing is one token, `ease-brand` (`cubic-bezier(0.16, 1, 0.3, 1)`); durations 150–300ms (600ms only for scroll-entry on marketing pages).
 
-- Press: `active:scale-[0.96]` on buttons/chips (exactly 0.96).
+- Press: the `press` utility on buttons/chips/toggles (`--press-scale`, exactly 0.96). Never hand-write the scale.
 - Hover: color/opacity shifts ≤200ms; interactive cards may lift per §4.
 - Enter/exit: sheet slides from left 300ms; dialog fade+scale from 0.98; exits softer than enters, small fixed `translateY`, `ease-out`.
 - Staggered reveals: marketing sections and feed sections fade in `translateY(12px)`, 80ms stagger, `IntersectionObserver` or Motion `whileInView`, `viewport={{ once: true }}`.
@@ -110,9 +119,16 @@ Base primitives via `npx shadcn@latest add`, then restyled through tokens (never
 | `Card` | shadcn card | 24px radius, border, no shadow |
 | `Sheet` | shadcn sheet | Settings panel, `side="left"`, white on cream, overlay scrim `rgba(28,27,24,0.45)` |
 | `Dialog` | shadcn dialog | Generate options, confirmations |
-| `Input`, `Textarea`, `Select` | shadcn | 12px radius, cream fill `#F5F3EC` on white cards, visible focus ring |
+| `Input`, `Textarea`, `Select` | shadcn | 12px radius, cream fill on white cards, visible focus ring |
+| `Field` | shadcn field | Label + control + description + error. Every form field uses it; no hand-rolled `grid gap-2` |
+| `Table` | shadcn table | Source-data rows |
+| `ToggleGroup` | shadcn toggle-group | Segmented pills (billing interval) |
 | `TagInput` | custom (Input + Badge) | X-account chips: type, Enter to add, X to remove, paste-splits on commas |
+| `AccountsField` | custom | TagInput + plan-limit notice, plus `VerifyAccountsButton` and `ImportAccountsDialog`. Shared by the settings sheet and onboarding |
 | `AccountChip` | Badge | Handle + verification state (pastel semantics §2) |
+| `Notice` | custom | Inline message block, tones info/warning/success/error, filled or plain. The only pastel surface |
+| `Spinner` | custom | The one busy indicator; `label` when it stands alone |
+| `PageHeader` | custom | Title + description + supporting controls, at `text-display-lg` |
 | `EmailChipList` | custom | Newsletter recipient(s); remove-to-unsubscribe with confirm |
 | `FeedSection` | custom | Headline + body + links list; hairline-separated (mock 2) |
 | `SummaryProse` | custom | Sanitized `summary_html` renderer, prose styles, `max-w-[65ch]`, links per §2 |
@@ -123,10 +139,11 @@ Base primitives via `npx shadcn@latest add`, then restyled through tokens (never
 | `Tabs` | shadcn tabs | Summary / Source data |
 | `DataTable` | TanStack Table + shadcn | Source-data explorer: sort, search |
 | `StatCard` | custom | Posts/likes/views metrics |
-| `Charts` | Recharts, styled to tokens | Posts per account, engagement, timeline |
+| `FeedCharts` | Recharts via `lib/chart-theme.ts` | Posts per account, engagement, timeline. Recharts cannot read classes, so `chart-theme` is the one place a chart names a `var(--token)` |
 | `ThemePicker` | Select/pills | Summary theme presets (General/ML/Politics/Finance) + custom prompt textarea |
-| `OnboardingSteps` | custom | 3-step wizard with progress |
-| `PricingCard` | custom | Plan tiers, current-plan state, usage meters |
+| `OnboardingSteps` | custom | 3-step wizard progress trail |
+| `PlanCard` | custom | Plan tier + features + the one action that plan offers (`planAction` owns that rule) |
+| `UsageSummary` | custom | Credit meter + period counters |
 | `EmptyState` | custom | Composed empty states w/ mascot + one CTA |
 | `Skeleton` | shadcn skeleton | Shape-matched loading (no spinners) |
 | `Toast` | sonner | Transient feedback only; errors inline where they occur |
@@ -149,16 +166,16 @@ Every component ships with: hover, focus-visible, active, disabled, loading, and
 
 ## 10. Accessibility baseline
 
-Focus-visible rings on every interactive element (2px ring, `--link` at 45% opacity, offset 2). Hit areas ≥40px. Labels above inputs, errors below, no placeholder-as-label. Landmarks + skip link in app shell. Sheet/dialog trap focus and restore on close. Audio player fully keyboard-operable. Contrast: all text AA minimum (this is why `--link` is darker than the mock; verify chips' pastel text pairs). `prefers-reduced-motion` respected globally. Charts get text alternatives (StatCards carry the numbers).
+Focus-visible rings on every interactive element via the `focus-ring` utility (`--ring-width` at `--ring-opacity` of `--ring`) — one definition, never re-stated per component. Hit areas ≥40px. Labels above inputs, errors below, no placeholder-as-label. Landmarks + skip link in app shell. Sheet/dialog trap focus and restore on close. Audio player fully keyboard-operable. Contrast: all text AA minimum (this is why `--link` is darker than the mock; verify chips' pastel text pairs). `prefers-reduced-motion` respected globally. Charts get text alternatives (StatCards carry the numbers).
 
 ## 11. Anti-slop checklist (pre-merge, every UI PR)
 
-1. Tokens only; no raw hex, no default shadcn styling, no `shadow-md+`, no gradients.
-2. Shape system respected (pills / 24 / 12, concentric nesting).
+1. `pnpm check:tokens` clean: no raw colour, no arbitrary value carrying a measurement, no Tailwind default shadow, no static inline style. No default shadcn styling, no gradients.
+2. Shape system respected (`rounded-full` / `rounded-card` / `rounded-field`, concentric nesting), type from the scale tokens, `focus-ring` and `press` rather than hand-written states.
 3. All interactive states implemented; skeletons match final layout.
 4. Copy: sentence case, plain language, no em-dashes, no emojis, no AI cliches; re-read every visible string.
 5. Max one decorative flourish per page; motion motivated and reduced-motion safe.
 6. One icon family (Phosphor); no hand-rolled icon paths.
 7. Mobile: single-column collapse, 16px input text, layout margins, no horizontal scroll.
-8. `pnpm lint && pnpm typecheck` clean; `/design` gallery updated for new/changed components.
+8. `pnpm lint && pnpm typecheck && pnpm check:tokens` clean; `/design` gallery updated for new/changed components.
 9. Screenshot the change against the mocks; run `/better-interface quick` on touched screens before release milestones.

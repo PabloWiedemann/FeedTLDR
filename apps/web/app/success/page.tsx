@@ -17,7 +17,7 @@ export default function SuccessPage() {
         aria-hidden="true"
       />
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-semibold">Payment successful</h1>
+        <h1 className="text-heading">Payment successful</h1>
         <p className="max-w-sm text-muted-foreground">
           Your plan is active. Your new limits and credits are ready to use.
         </p>

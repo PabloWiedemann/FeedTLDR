@@ -22,7 +22,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Skeleton className="h-10 w-40 rounded-full" />
         <Skeleton className="h-14 w-2/3" />
         <Skeleton className="h-4 w-1/3" />
-        <Skeleton className="h-40 w-full rounded-3xl" />
+        <Skeleton className="h-40 w-full rounded-card" />
       </div>
     );
   }

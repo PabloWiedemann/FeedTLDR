@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api/client";
+import { registerAccount } from "@/lib/auth";
 import { getGoogleRedirectResult, googleErrorMessage } from "@/lib/firebase";
 
 /**
@@ -17,35 +17,26 @@ export function useGoogleRedirect() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+
+    async function completeSignIn() {
       try {
-        const cred = await getGoogleRedirectResult();
-        if (!cred || cancelled) return;
+        const credential = await getGoogleRedirectResult();
+        if (!credential || cancelled) return;
         setCompleting(true);
-        const result = await api.POST("/v1/auth/register", {
-          body: {
-            name: cred.user.displayName ?? "",
-            avatar: cred.user.photoURL ?? "",
-            is_google_auth: true,
-            tos_accepted: false,
-          },
-        });
+        const destination = await registerAccount(credential);
+        if (!cancelled) router.replace(destination);
+      } catch (error) {
         if (cancelled) return;
-        if (result.error) {
-          setRedirectError(
-            `Signed in with Google, but account setup failed: ${JSON.stringify(result.error).slice(0, 140)}`
-          );
-          setCompleting(false);
-          return;
-        }
-        router.replace(result.data?.already_registered ? "/app" : "/onboarding");
-      } catch (err) {
-        if (!cancelled) {
-          setRedirectError(googleErrorMessage(err));
-          setCompleting(false);
-        }
+        setRedirectError(
+          error instanceof Error && error.name === "AccountSetupError"
+            ? error.message
+            : googleErrorMessage(error)
+        );
+        setCompleting(false);
       }
-    })();
+    }
+
+    void completeSignIn();
     return () => {
       cancelled = true;
     };

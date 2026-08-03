@@ -1487,7 +1487,7 @@
     },
     "/v1/generations/status": {
       "get": {
-        "description": "The polling seam: reads the same pipeline_status document the pipeline\nwrites stage transitions to (poll every 5-8s, like the legacy dialog).",
+        "description": "The polling seam: reads the same pipeline_status document the pipeline\nwrites stage transitions to.",
         "operationId": "generation_status_v1_generations_status_get",
         "parameters": [
           {

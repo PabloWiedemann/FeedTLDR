@@ -41,7 +41,7 @@ export default function LandingPage() {
       {/* ---------------- hero (mock 1) ---------------- */}
       <section className="grid items-center gap-12 lg:grid-cols-2">
         <div className="flex flex-col gap-10">
-          <h1 className="text-5xl leading-[1.08] font-semibold tracking-[-0.02em] sm:text-6xl lg:text-7xl">
+          <h1 className="text-display-xl">
             Stay Informed Without the Overwhelm
           </h1>
           <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:gap-10">
@@ -49,8 +49,7 @@ export default function LandingPage() {
               <Link href="/signup">Try now</Link>
             </Button>
             <p
-              className="max-w-sm text-lg leading-relaxed text-foreground/80"
-              style={{ textWrap: "pretty" }}
+              className="max-w-sm text-lg leading-relaxed text-foreground/80 text-pretty"
             >
               Receive daily, curated summaries of your social media feeds so
               you&rsquo;re always up to date with the content that matters most.
@@ -71,7 +70,7 @@ export default function LandingPage() {
 
       {/* ---------------- how it works ---------------- */}
       <section className="grid gap-10 lg:grid-cols-[2fr_3fr]">
-        <h2 className="text-3xl font-semibold sm:text-4xl">
+        <h2 className="text-heading">
           Your feed, distilled every morning
         </h2>
         <ol className="flex flex-col">
@@ -84,10 +83,9 @@ export default function LandingPage() {
                 {i + 1}
               </span>
               <div className="flex flex-col gap-1.5">
-                <h3 className="text-lg font-medium">{step.title}</h3>
+                <h3 className="text-section">{step.title}</h3>
                 <p
-                  className="max-w-md text-muted-foreground"
-                  style={{ textWrap: "pretty" }}
+                  className="max-w-md text-muted-foreground text-pretty"
                 >
                   {step.body}
                 </p>
@@ -100,10 +98,10 @@ export default function LandingPage() {
       {/* ---------------- sample ---------------- */}
       <section className="flex flex-col gap-8">
         <div className="flex flex-col gap-2">
-          <h2 className="text-3xl font-semibold sm:text-4xl">
+          <h2 className="text-heading">
             What a summary looks like
           </h2>
-          <p className="max-w-lg text-muted-foreground" style={{ textWrap: "pretty" }}>
+          <p className="max-w-lg text-muted-foreground text-pretty">
             Headlines, the substance underneath, and links back to the original
             posts when you want to go deeper.
           </p>
@@ -117,7 +115,7 @@ export default function LandingPage() {
 
       {/* ---------------- closing CTA ---------------- */}
       <section className="flex flex-col items-start gap-6 border-t pt-16">
-        <h2 className="max-w-2xl text-3xl font-semibold sm:text-4xl">
+        <h2 className="max-w-2xl text-heading">
           Five minutes a day is enough to stay in the loop
         </h2>
         <Button asChild size="lg">

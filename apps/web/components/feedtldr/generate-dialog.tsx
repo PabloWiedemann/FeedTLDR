@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CircleNotch } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,12 +10,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { CreditBadge } from "./credit-badge";
-import { useGenerationCost, useSettings, useStartGeneration } from "@/lib/hooks";
+import { Notice } from "./notice";
+import { Spinner } from "./spinner";
+import { useGenerationCost, useSettings } from "@/lib/api/queries";
+import { useStartGeneration } from "@/lib/api/mutations";
+import { creditsLeft } from "@/lib/credits";
 
+/** Why the Generate button is unavailable, and what to do about it. */
 const BLOCKER_COPY: Record<string, React.ReactNode> = {
   no_accounts: "Add accounts in settings before generating.",
   no_verified_accounts: "Verify at least one account in settings first.",
@@ -47,17 +51,30 @@ export function GenerateDialog({
   onStarted: () => void;
 }) {
   const [fetchLatest, setFetchLatest] = useState(true);
-  const [promptDraft, setPromptDraft] = useState<string | null>(null);
+  // null means "untouched", so the saved prompt keeps showing through.
+  const [promptOverride, setPromptOverride] = useState<string | null>(null);
   const settings = useSettings(open);
   const cost = useGenerationCost(fetchLatest, open);
   const start = useStartGeneration();
 
-  const effectivePrompt =
-    promptDraft !== null ? promptDraft : (settings.data?.ai_prompt ?? "");
+  const savedPrompt = settings.data?.ai_prompt ?? "";
+  const prompt = promptOverride ?? savedPrompt;
+  const promptChanged = promptOverride !== null && promptOverride !== savedPrompt;
 
-  const remaining = cost.data
-    ? cost.data.credits.monthly_left + cost.data.credits.prepaid_left
-    : undefined;
+  function generate() {
+    start.mutate(
+      {
+        fetch_latest: fetchLatest,
+        prompt: promptChanged ? promptOverride : undefined,
+      },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+          onStarted();
+        },
+      }
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -73,10 +90,10 @@ export function GenerateDialog({
 
         <div className="flex flex-col gap-5">
           {hasPreviousData && (
-            <div className="flex items-center justify-between gap-4 rounded-xl bg-secondary px-4 py-3">
-              <Label htmlFor="fetch-latest" className="font-normal">
+            <div className="flex items-center justify-between gap-4 rounded-field bg-secondary px-4 py-3">
+              <FieldLabel htmlFor="fetch-latest" className="font-normal">
                 Fetch latest posts
-              </Label>
+              </FieldLabel>
               <Switch
                 id="fetch-latest"
                 checked={fetchLatest}
@@ -85,59 +102,49 @@ export function GenerateDialog({
             </div>
           )}
 
-          <div className="grid gap-2">
-            <Label htmlFor="gen-prompt">AI prompt for this run</Label>
+          <Field>
+            <FieldLabel htmlFor="gen-prompt">AI prompt for this run</FieldLabel>
             <Textarea
               id="gen-prompt"
-              value={effectivePrompt}
-              onChange={(e) => setPromptDraft(e.target.value)}
+              value={prompt}
+              onChange={(event) => setPromptOverride(event.target.value)}
               rows={5}
               placeholder="Loading your saved prompt…"
             />
-            <p className="text-xs text-muted-foreground">
+            <FieldDescription className="text-xs">
               Applies to this generation only. Save a default in settings.
-            </p>
-          </div>
+            </FieldDescription>
+          </Field>
 
-          <div className="flex items-center justify-between rounded-xl border px-4 py-3">
+          <div className="flex items-center justify-between rounded-field border px-4 py-3">
             <span className="text-sm">This action costs</span>
             {cost.data ? (
-              <CreditBadge cost={cost.data.cost} remaining={remaining} />
+              <CreditBadge
+                cost={cost.data.cost}
+                remaining={creditsLeft(cost.data.credits)}
+              />
             ) : (
-              <CircleNotch className="size-4 animate-spin text-muted-foreground" />
+              <Spinner
+                label="Calculating cost"
+                className="size-4 text-muted-foreground"
+              />
             )}
           </div>
 
           {cost.data?.blockers.map((blocker) => (
-            <p key={blocker} role="alert" className="text-sm font-medium text-destructive">
+            <Notice key={blocker} tone="error">
               {BLOCKER_COPY[blocker] ?? blocker}
-            </p>
+            </Notice>
           ))}
 
           <Button
             size="lg"
-            disabled={start.isPending || (cost.data ? !cost.data.can_generate : true)}
-            onClick={() =>
-              start.mutate(
-                {
-                  fetch_latest: fetchLatest,
-                  prompt:
-                    promptDraft !== null && promptDraft !== settings.data?.ai_prompt
-                      ? promptDraft
-                      : undefined,
-                },
-                {
-                  onSuccess: () => {
-                    onOpenChange(false);
-                    onStarted();
-                  },
-                }
-              )
-            }
+            disabled={start.isPending || !cost.data?.can_generate}
+            onClick={generate}
           >
             {start.isPending ? (
               <>
-                <CircleNotch className="animate-spin" /> Starting…
+                <Spinner /> Starting…
               </>
             ) : (
               "Generate"

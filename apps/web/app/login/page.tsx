@@ -3,30 +3,16 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
-import { CircleNotch } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { AuthCard } from "@/components/feedtldr/auth-card";
-import { api } from "@/lib/api/client";
-import {
-  googleErrorMessage,
-  loginWithEmail,
-  loginWithGoogle,
-  resetPassword,
-} from "@/lib/firebase";
+import { Spinner } from "@/components/feedtldr/spinner";
+import { loginErrorMessage } from "@/lib/auth";
+import { loginWithEmail, resetPassword } from "@/lib/firebase";
 import { useGoogleRedirect } from "@/lib/use-google-redirect";
-
-function friendlyAuthError(code: string): string {
-  if (code.includes("invalid-credential") || code.includes("wrong-password"))
-    return "Wrong email or password.";
-  if (code.includes("user-not-found"))
-    return "No account exists with this email.";
-  if (code.includes("too-many-requests"))
-    return "Too many attempts. Try again in a few minutes.";
-  return "Could not log in. Try again.";
-}
+import { useGoogleSignIn } from "@/lib/use-google-sign-in";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,51 +21,36 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const { redirectError, completing } = useGoogleRedirect();
+  const { signIn, googleError, setGoogleError } = useGoogleSignIn();
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
     setError(null);
+    setGoogleError(null);
     setBusy(true);
     try {
       await loginWithEmail(email, password);
       router.push("/app");
-    } catch (err) {
-      setError(friendlyAuthError(String(err)));
+    } catch (caught) {
+      setError(loginErrorMessage(caught));
     } finally {
       setBusy(false);
     }
   }
 
-  async function google() {
-    setError(null);
-    try {
-      const cred = await loginWithGoogle();
-      if (!cred) return; // redirect flow: the page is navigating to Google
-      // Ensure the Firestore/Stripe records exist (idempotent)
-      const result = await api.POST("/v1/auth/register", {
-        body: {
-          name: cred.user.displayName ?? "",
-          avatar: cred.user.photoURL ?? "",
-          is_google_auth: true,
-          tos_accepted: false,
-        },
-      });
-      if (result.error) {
-        setError(
-          `Signed in with Google, but account setup failed: ${JSON.stringify(result.error).slice(0, 140)}`
-        );
-        return;
-      }
-      router.push("/app");
-    } catch (err) {
-      setError(googleErrorMessage(err));
+  async function sendResetEmail() {
+    if (!email) {
+      setError("Enter your email first, then use the reset link.");
+      return;
     }
+    await resetPassword(email);
+    toast.success("Password reset email sent");
   }
 
   return (
     <AuthCard
       title="Welcome back"
-      onGoogle={google}
+      onGoogle={signIn}
       googleLabel="Continue with Google"
       footer={
         <p>
@@ -91,55 +62,47 @@ export default function LoginPage() {
       }
     >
       <form onSubmit={submit} className="flex flex-col gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="email">Email</Label>
+        <Field>
+          <FieldLabel htmlFor="email">Email</FieldLabel>
           <Input
             id="email"
             type="email"
             autoComplete="email"
             required
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(event) => setEmail(event.target.value)}
           />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="password">Password</Label>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="password">Password</FieldLabel>
           <Input
             id="password"
             type="password"
             autoComplete="current-password"
             required
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(event) => setPassword(event.target.value)}
           />
-          <button
-            type="button"
-            className="justify-self-start text-xs text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
-            onClick={async () => {
-              if (!email) {
-                setError("Enter your email first, then use the reset link.");
-                return;
-              }
-              await resetPassword(email);
-              toast.success("Password reset email sent");
-            }}
-          >
-            Forgot password?
-          </button>
-        </div>
-        {(error ?? redirectError) && (
-          <p role="alert" className="text-sm font-medium text-destructive">
-            {error ?? redirectError}
-          </p>
-        )}
+          <div>
+            <Button
+              type="button"
+              variant="link"
+              size="xs"
+              className="p-0 text-xs text-muted-foreground"
+              onClick={sendResetEmail}
+            >
+              Forgot password?
+            </Button>
+          </div>
+        </Field>
+        <FieldError>{error ?? googleError ?? redirectError}</FieldError>
         {completing && (
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
-            <CircleNotch className="size-4 animate-spin" /> Completing
-            sign-in…
+            <Spinner className="size-4" /> Completing sign-in…
           </p>
         )}
         <Button type="submit" disabled={busy || completing}>
-          {busy ? <CircleNotch className="animate-spin" /> : null}
+          {busy && <Spinner />}
           Log in
         </Button>
       </form>

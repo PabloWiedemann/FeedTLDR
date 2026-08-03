@@ -14,7 +14,7 @@ export function Logo({
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-2 rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45",
+        "flex items-center gap-2 rounded-full focus-ring",
         className
       )}
       aria-label="Feed TLDR home"
@@ -27,7 +27,7 @@ export function Logo({
         className="h-9 w-auto"
         priority
       />
-      <span className="text-lg font-medium tracking-wide">TLDR</span>
+      <span className="text-section tracking-wide">TLDR</span>
     </Link>
   );
 }
