@@ -17,10 +17,19 @@ import {
 } from "firebase/auth";
 
 // Same Firebase project as the legacy app: existing users keep their accounts.
+// With NEXT_PUBLIC_AUTH_PROXY=1, the sign-in helper is served from this site's
+// own domain (see the /__/auth rewrite in next.config.ts), which keeps Google
+// sign-in fully first-party — required for desktop Safari's tracking
+// protection. Needs the domain added to the Google OAuth client's authorized
+// origins + redirect URIs first.
+const useAuthProxy =
+  process.env.NEXT_PUBLIC_AUTH_PROXY === "1" && typeof window !== "undefined";
+
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "missing-api-key",
-  authDomain:
-    process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "feedtldr.firebaseapp.com",
+  authDomain: useAuthProxy
+    ? window.location.host
+    : (process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "feedtldr.firebaseapp.com"),
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "feedtldr",
 };
 
