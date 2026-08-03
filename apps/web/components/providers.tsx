@@ -1,7 +1,14 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { watchAuth, type User } from "@/lib/firebase";
 
@@ -33,12 +40,21 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const prevUid = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
     return watchAuth((u) => {
+      // A different user (or a sign-out) invalidates every cached response:
+      // without this, the previous account's profile/feed keeps rendering.
+      const uid = u?.uid ?? null;
+      if (prevUid.current !== undefined && prevUid.current !== uid) {
+        queryClient.clear();
+      }
+      prevUid.current = uid;
       setUser(u);
       setLoading(false);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const authValue = useMemo(() => ({ user, loading }), [user, loading]);
