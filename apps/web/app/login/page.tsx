@@ -10,7 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthCard } from "@/components/feedtldr/auth-card";
 import { api } from "@/lib/api/client";
-import { loginWithEmail, loginWithGoogle, resetPassword } from "@/lib/firebase";
+import {
+  googleErrorMessage,
+  loginWithEmail,
+  loginWithGoogle,
+  resetPassword,
+} from "@/lib/firebase";
 
 function friendlyAuthError(code: string): string {
   if (code.includes("invalid-credential") || code.includes("wrong-password"))
@@ -48,7 +53,7 @@ export default function LoginPage() {
     try {
       const cred = await loginWithGoogle();
       // Ensure the Firestore/Stripe records exist (idempotent)
-      await api.POST("/v1/auth/register", {
+      const result = await api.POST("/v1/auth/register", {
         body: {
           name: cred.user.displayName ?? "",
           avatar: cred.user.photoURL ?? "",
@@ -56,9 +61,15 @@ export default function LoginPage() {
           tos_accepted: false,
         },
       });
+      if (result.error) {
+        setError(
+          `Signed in with Google, but account setup failed: ${JSON.stringify(result.error).slice(0, 140)}`
+        );
+        return;
+      }
       router.push("/app");
-    } catch {
-      setError("Google sign-in did not complete.");
+    } catch (err) {
+      setError(googleErrorMessage(err));
     }
   }
 

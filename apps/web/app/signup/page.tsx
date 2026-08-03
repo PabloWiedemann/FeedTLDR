@@ -9,7 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthCard } from "@/components/feedtldr/auth-card";
 import { api } from "@/lib/api/client";
-import { loginWithGoogle, signupWithEmail } from "@/lib/firebase";
+import {
+  googleErrorMessage,
+  loginWithGoogle,
+  signupWithEmail,
+} from "@/lib/firebase";
 
 // Same requirements as the legacy signup validation
 function passwordProblems(password: string, confirm: string): string[] {
@@ -75,11 +79,17 @@ export default function SignupPage() {
           tos_accepted: false,
         },
       });
+      if (result.error) {
+        setError(
+          `Signed in with Google, but account setup failed: ${JSON.stringify(result.error).slice(0, 140)}`
+        );
+        return;
+      }
       router.push(
         result.data?.already_registered ? "/app" : "/onboarding"
       );
-    } catch {
-      setError("Google sign-up did not complete.");
+    } catch (err) {
+      setError(googleErrorMessage(err));
     }
   }
 

@@ -54,4 +54,24 @@ export function logout() {
   return signOut(auth);
 }
 
+/** Human-readable explanation for Google sign-in failures, with the raw code
+ * kept visible so problems can be reported and diagnosed. */
+export function googleErrorMessage(err: unknown): string {
+  const code =
+    typeof err === "object" && err !== null && "code" in err
+      ? String((err as { code: unknown }).code)
+      : "";
+  if (code.includes("popup-blocked"))
+    return "Your browser blocked the Google sign-in window. Allow popups for this site and try again, or log in with email.";
+  if (code.includes("popup-closed") || code.includes("cancelled-popup"))
+    return "The Google window closed before sign-in finished. Try again and complete the steps in the popup.";
+  if (code.includes("unauthorized-domain"))
+    return "This web address isn't authorized for Google sign-in yet (auth/unauthorized-domain).";
+  if (code.includes("network-request-failed"))
+    return "Network problem while talking to Google. Check the connection and try again.";
+  if (code.includes("account-exists-with-different-credential"))
+    return "This email already has an account with a password. Log in with email and password instead.";
+  return `Google sign-in failed (${code || String(err).slice(0, 120)}).`;
+}
+
 export type { User };
