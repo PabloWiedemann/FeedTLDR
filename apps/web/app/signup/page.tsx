@@ -14,6 +14,7 @@ import {
   loginWithGoogle,
   signupWithEmail,
 } from "@/lib/firebase";
+import { useGoogleRedirect } from "@/lib/use-google-redirect";
 
 // Same requirements as the legacy signup validation
 function passwordProblems(password: string, confirm: string): string[] {
@@ -33,6 +34,7 @@ export default function SignupPage() {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const { redirectError, completing } = useGoogleRedirect();
 
   const problems = passwordProblems(password, confirm);
 
@@ -71,6 +73,7 @@ export default function SignupPage() {
     setError(null);
     try {
       const cred = await loginWithGoogle();
+      if (!cred) return; // redirect flow: the page is navigating to Google
       const result = await api.POST("/v1/auth/register", {
         body: {
           name: cred.user.displayName ?? "",
@@ -157,12 +160,18 @@ export default function SignupPage() {
             </ul>
           )}
         </div>
-        {error && (
+        {(error ?? redirectError) && (
           <p role="alert" className="text-sm font-medium text-destructive">
-            {error}
+            {error ?? redirectError}
           </p>
         )}
-        <Button type="submit" disabled={busy || problems.length > 0}>
+        {completing && (
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <CircleNotch className="size-4 animate-spin" /> Completing
+            sign-in…
+          </p>
+        )}
+        <Button type="submit" disabled={busy || completing || problems.length > 0}>
           {busy ? <CircleNotch className="animate-spin" /> : null}
           Create account
         </Button>

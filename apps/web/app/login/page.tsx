@@ -16,6 +16,7 @@ import {
   loginWithGoogle,
   resetPassword,
 } from "@/lib/firebase";
+import { useGoogleRedirect } from "@/lib/use-google-redirect";
 
 function friendlyAuthError(code: string): string {
   if (code.includes("invalid-credential") || code.includes("wrong-password"))
@@ -33,6 +34,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const { redirectError, completing } = useGoogleRedirect();
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,6 +54,7 @@ export default function LoginPage() {
     setError(null);
     try {
       const cred = await loginWithGoogle();
+      if (!cred) return; // redirect flow: the page is navigating to Google
       // Ensure the Firestore/Stripe records exist (idempotent)
       const result = await api.POST("/v1/auth/register", {
         body: {
@@ -124,12 +127,18 @@ export default function LoginPage() {
             Forgot password?
           </button>
         </div>
-        {error && (
+        {(error ?? redirectError) && (
           <p role="alert" className="text-sm font-medium text-destructive">
-            {error}
+            {error ?? redirectError}
           </p>
         )}
-        <Button type="submit" disabled={busy}>
+        {completing && (
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <CircleNotch className="size-4 animate-spin" /> Completing
+            sign-in…
+          </p>
+        )}
+        <Button type="submit" disabled={busy || completing}>
           {busy ? <CircleNotch className="animate-spin" /> : null}
           Log in
         </Button>

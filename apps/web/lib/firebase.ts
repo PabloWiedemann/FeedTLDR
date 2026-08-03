@@ -5,6 +5,7 @@ import {
   browserPopupRedirectResolver,
   createUserWithEmailAndPassword,
   getAuth,
+  getRedirectResult,
   inMemoryPersistence,
   indexedDBLocalPersistence,
   initializeAuth,
@@ -12,8 +13,10 @@ import {
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
   signOut,
   type User,
+  type UserCredential,
 } from "firebase/auth";
 
 // Same Firebase project as the legacy app: existing users keep their accounts.
@@ -69,8 +72,25 @@ export function signupWithEmail(email: string, password: string) {
   return createUserWithEmailAndPassword(auth, email, password);
 }
 
-export function loginWithGoogle() {
+/**
+ * Google sign-in. In auth-proxy mode (production) this uses a full-page
+ * redirect, the same robust shape as the legacy app: no popup blockers, no
+ * cross-window storage handshakes, and safe on Safari because the helper is
+ * first-party. It resolves to null because the page navigates away; the
+ * result is picked up by getGoogleRedirectResult on return. Outside proxy
+ * mode (local dev) it falls back to the popup, which resolves directly.
+ */
+export async function loginWithGoogle(): Promise<UserCredential | null> {
+  if (process.env.NEXT_PUBLIC_AUTH_PROXY === "1") {
+    await signInWithRedirect(auth, googleProvider);
+    return null;
+  }
   return signInWithPopup(auth, googleProvider);
+}
+
+/** Result of a completed redirect sign-in, or null if none is pending. */
+export function getGoogleRedirectResult(): Promise<UserCredential | null> {
+  return getRedirectResult(auth);
 }
 
 export function resetPassword(email: string) {
