@@ -55,12 +55,15 @@ function PlanSummary({ me }: { me: Me }) {
   return (
     <>
       <p className="text-sm">
-        You are on the <span className="font-medium capitalize">{me.plan}</span>{" "}
-        plan with{" "}
+        You are on the{" "}
+        <span className="font-medium capitalize">
+          {me.plan === "free" ? "free trial" : me.plan}
+        </span>{" "}
+        with{" "}
         <span className="font-medium tabular-nums">
           {creditsLeft(me.credits)}
         </span>{" "}
-        credits left this period.
+        credits left{me.plan === "free" ? "." : " this period."}
       </p>
       <div className="flex flex-wrap gap-2">
         <Button asChild variant="outline" size="sm">

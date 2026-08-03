@@ -10,6 +10,7 @@ from api.constants import DEFAULT_TIMEZONE
 
 # ---------- shared ----------
 
+
 class Message(BaseModel):
     detail: str
 
@@ -20,11 +21,22 @@ class UrlResponse(BaseModel):
 
 # ---------- auth / me ----------
 
+
+class SignupChallengeRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=320)
+    turnstile_token: Optional[str] = None
+
+
+class SignupChallengeResponse(BaseModel):
+    challenge_token: str
+
+
 class RegisterRequest(BaseModel):
     name: str = ""
     avatar: str = ""
     is_google_auth: bool = False
     tos_accepted: bool = False
+    signup_challenge: Optional[str] = None
 
 
 class RegisterResponse(BaseModel):
@@ -94,6 +106,7 @@ class UpdateMeRequest(BaseModel):
 
 # ---------- settings ----------
 
+
 class GlobalSettings(BaseModel):
     timezone: str = DEFAULT_TIMEZONE
     ai_prompt: str = ""
@@ -133,6 +146,7 @@ class ImportAccountsResponse(BaseModel):
 
 # ---------- feed ----------
 
+
 class FeedResponse(BaseModel):
     is_demo: bool = False
     summary_html: str = ""
@@ -166,6 +180,7 @@ class SourceDataResponse(BaseModel):
 
 # ---------- generations ----------
 
+
 class GenerationCostResponse(BaseModel):
     cost: int
     credits: CreditState
@@ -191,6 +206,7 @@ class GenerationStatus(BaseModel):
 
 # ---------- chat ----------
 
+
 class ChatMessage(BaseModel):
     role: str  # "user" | "assistant"
     content: str
@@ -206,6 +222,7 @@ class ChatResponse(BaseModel):
 
 
 # ---------- billing ----------
+
 
 class PlanPublic(BaseModel):
     id: str

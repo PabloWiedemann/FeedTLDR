@@ -7,6 +7,7 @@ import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/feedtldr/spinner";
+import { Notice } from "@/components/feedtldr/notice";
 import { useMe } from "@/lib/api/queries";
 import { useChat } from "@/lib/api/mutations";
 import { creditsLeft } from "@/lib/credits";
@@ -18,6 +19,7 @@ const EXAMPLE_QUESTIONS = [
   "Which posts got the most engagement?",
   "Any breaking news or big announcements?",
 ];
+const CHAT_MESSAGE_COST = 3;
 
 function ChatBubble({ message }: { message: ChatMessage }) {
   const fromUser = message.role === "user";
@@ -41,7 +43,13 @@ function ChatBubble({ message }: { message: ChatMessage }) {
   );
 }
 
-function ChatIntro({ onAsk }: { onAsk: (question: string) => void }) {
+function ChatIntro({
+  onAsk,
+  disabled,
+}: {
+  onAsk: (question: string) => void;
+  disabled: boolean;
+}) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-6 text-center">
       <div>
@@ -54,7 +62,11 @@ function ChatIntro({ onAsk }: { onAsk: (question: string) => void }) {
       <ul className="flex flex-col gap-2">
         {EXAMPLE_QUESTIONS.map((question) => (
           <li key={question}>
-            <Button variant="outline" onClick={() => onAsk(question)}>
+            <Button
+              variant="outline"
+              disabled={disabled}
+              onClick={() => onAsk(question)}
+            >
               {question}
             </Button>
           </li>
@@ -71,6 +83,8 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
+  const balance = me.data ? creditsLeft(me.data.credits) : null;
+  const outOfCredits = balance !== null && balance < CHAT_MESSAGE_COST;
 
   function scrollToLatest() {
     requestAnimationFrame(() => {
@@ -83,7 +97,7 @@ export default function ChatPage() {
 
   function send(text: string) {
     const content = text.trim();
-    if (!content || chat.isPending) return;
+    if (!content || chat.isPending || outOfCredits) return;
 
     const withQuestion: ChatMessage[] = [...messages, { role: "user", content }];
     setMessages(withQuestion);
@@ -107,7 +121,7 @@ export default function ChatPage() {
         <div className="flex items-center gap-3">
           {me.data && (
             <span className="text-xs tabular-nums text-muted-foreground">
-              {creditsLeft(me.data.credits)} credits left
+              {balance} credits left
             </span>
           )}
           <Button
@@ -123,7 +137,7 @@ export default function ChatPage() {
 
       <div ref={listRef} className="flex-1 overflow-y-auto pb-6">
         {messages.length === 0 ? (
-          <ChatIntro onAsk={send} />
+          <ChatIntro onAsk={send} disabled={outOfCredits} />
         ) : (
           <ul className="flex flex-col gap-4">
             {messages.map((message, index) => (
@@ -138,6 +152,17 @@ export default function ChatPage() {
         )}
       </div>
 
+      {outOfCredits && (
+        <Notice role="status" tone="warning" filled className="mb-3">
+          You have used the credits available for another chat message. Your
+          existing summary and chat stay available.{" "}
+          <Link href="/pricing" className="text-link underline underline-offset-2">
+            Compare Basic and Pro
+          </Link>{" "}
+          to continue.
+        </Notice>
+      )}
+
       <form
         className="flex items-center gap-2 pb-6"
         onSubmit={(event) => {
@@ -151,11 +176,12 @@ export default function ChatPage() {
           placeholder="Ask about your feed…"
           aria-label="Chat message"
           className="bg-card"
+          disabled={outOfCredits}
         />
         <Button
           type="submit"
           size="icon"
-          disabled={chat.isPending || draft.trim() === ""}
+          disabled={chat.isPending || draft.trim() === "" || outOfCredits}
           aria-label="Send message"
         >
           <ArrowUp />

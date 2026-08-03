@@ -100,9 +100,7 @@ def generation_is_locked(state: str | None, start_time: str | None) -> bool:
         return True
     try:
         started = pytz.utc.localize(
-            datetime.strptime(
-                start_time.split(" UTC")[0], UTC_TIMESTAMP_PARSE_FORMAT
-            )
+            datetime.strptime(start_time.split(" UTC")[0], UTC_TIMESTAMP_PARSE_FORMAT)
         )
     except ValueError:
         return True
@@ -171,10 +169,13 @@ def start_generation(
         raise ValueError(ERROR_NO_VERIFIED_ACCOUNTS)
 
     monthly_left, prepaid_left, monthly_limit, prepaid_limit = credit_state
-    if monthly_left + prepaid_left < compute_generation_cost(
-        plan, fetch_latest, skip_audio
-    ):
+    cost = compute_generation_cost(plan, fetch_latest, skip_audio)
+    if monthly_left + prepaid_left < cost:
         raise ValueError(ERROR_INSUFFICIENT_CREDITS)
+
+    # Reserve before the worker starts so simultaneous requests cannot spend
+    # the same balance. The transaction is the authority for this check.
+    utils_firebase.reserve_credit_usage(uid, plan, cost, monthly_limit, prepaid_limit)
 
     # Make polling see in_progress immediately (run_flow re-initializes it too).
     utils_firebase.update_data_firestore_DB(uid, _pipeline_status("in_progress"))
@@ -186,21 +187,15 @@ def start_generation(
             email=email,
             followers=accounts,
             plan=plan,
-            timezone=pytz.timezone(
-                settings.get(FIELD_TIMEZONE) or DEFAULT_TIMEZONE
-            ),
+            timezone=pytz.timezone(settings.get(FIELD_TIMEZONE) or DEFAULT_TIMEZONE),
             prompt=prompt or settings.get(FIELD_AI_PROMPT) or DEFAULT_X_PROMPT,
             skip_scraping=not fetch_latest,
             skip_summary=False,
             skip_audio=skip_audio,
             skip_email=skip_email,
             newsletter_email=settings.get(FIELD_NEWSLETTER_EMAIL) or email,
-            credits_usage={
-                "monthly_credits_left": monthly_left,
-                "prepaid_credits_left": prepaid_left,
-                "monthly_credits_limit": monthly_limit,
-                "prepaid_credits_limit": prepaid_limit,
-            },
+            # Credits were reserved atomically before the thread started.
+            credits_usage=None,
         ),
         daemon=True,
     ).start()

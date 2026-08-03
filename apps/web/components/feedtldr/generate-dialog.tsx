@@ -26,11 +26,11 @@ const BLOCKER_COPY: Record<string, React.ReactNode> = {
   no_verified_accounts: "Verify at least one account in settings first.",
   insufficient_credits: (
     <>
-      Not enough credits.{" "}
+      You have used the credits available for this action.{" "}
       <Link href="/pricing" className="text-link underline underline-offset-2">
-        Upgrade your plan
+        Compare Basic and Pro
       </Link>{" "}
-      to continue.
+      to keep generating summaries.
     </>
   ),
 };

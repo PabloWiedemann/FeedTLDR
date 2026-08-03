@@ -13,6 +13,7 @@ from utils_user import get_user_subscription_info_from_stripe
 from queue import Queue
 import threading
 from backend.emails_module.utils_sendgrid import send_free_plan_end_notification
+from backend.credits import CreditsCalculator
 
 
 load_dotenv()
@@ -36,6 +37,7 @@ logger_user_checker = get_logger("user_checker_logger")
 users_queue = Queue()
 users_in_queue = set()
 queue_lock = threading.Lock()
+credits_calculator = CreditsCalculator()
 
 # GENERATION TIME
 TARGET_HOUR = 7  # 7 AM
@@ -98,33 +100,6 @@ def get_users_for_current_hour(users, target_hour=TARGET_HOUR):
                 ):
                     logger_user_checker.info(
                         f"Skipping user id {user_id} with email {email} because newsletter was generated in the last {MIN_TIME_BETWEEN_GENERATIONS} hours..."
-                    )
-                    continue
-
-            # skip if free trial is over
-            if plan == "free":
-                n_newsletters_sent = utils_firebase.get_specific_user_data(
-                    user_id, ["plan_usage.free.n_newsletters_sent"]
-                )
-                n_newsletters_sent = n_newsletters_sent.get(
-                    "plan_usage.free.n_newsletters_sent", 0
-                )
-                max_newsletters = PLAN_PROPERTIES["free"]["limits"][
-                    "max_newsletters_sent"
-                ]
-                if n_newsletters_sent >= max_newsletters:
-                    free_plan_end_notification_sent = utils_firebase.get_specific_user_data(
-                        user_id, ["free_plan_end_email_notification_sent"]
-                    ).get("free_plan_end_email_notification_sent", False)
-                    if free_plan_end_notification_sent is None or not free_plan_end_notification_sent:
-                        success = send_free_plan_end_notification(email)
-                        if success:
-                            utils_firebase.update_data_firestore_DB(
-                                user_id,
-                                {"free_plan_end_email_notification_sent": True}
-                            )
-                    logger_user_checker.info(
-                        f"Skipping user id {user_id} with email {email} because free trial is over..."
                     )
                     continue
 
@@ -211,9 +186,8 @@ def handle_plan_reset(user_id, email, current_date, timezone, plan_info):
 
     # Reset if we're on the reset day of the month
     if (
-        (current_date.day == reset_day and current_date.month != plan_start_date.month)
-        or current_date.year != plan_start_date.year
-    ):
+        current_date.day == reset_day and current_date.month != plan_start_date.month
+    ) or current_date.year != plan_start_date.year:
         utils_firebase.reset_all_plans_usage(user_id)
         logger.info(f"Reset all plans usage for user {email}")
 
@@ -222,7 +196,6 @@ def handle_plan_reset(user_id, email, current_date, timezone, plan_info):
 
 def run_script_for_user(user):
     try:
-
         # get user data
         user_id = user["uid"]
         email = user["email"]
@@ -258,6 +231,43 @@ def run_script_for_user(user):
             )
             return
 
+        # Paid plans include the scheduled weekday newsletter. The free trial
+        # shares one lifetime 50-credit pool across manual generations, chat,
+        # and scheduled newsletters. Reserve before calling any paid provider.
+        if plan == "free":
+            generation_cost = credits_calculator.compute_full_gen_run_credits(plan)
+            try:
+                utils_firebase.reserve_credit_usage(
+                    user_id,
+                    plan,
+                    generation_cost,
+                    PLAN_PROPERTIES["free"]["limits"]["max_credits"],
+                    0,
+                )
+            except ValueError as e:
+                if str(e) != "insufficient_credits":
+                    raise
+                notification_data = (
+                    utils_firebase.get_specific_user_data(
+                        user_id, ["free_plan_end_email_notification_sent"]
+                    )
+                    or {}
+                )
+                if not notification_data.get(
+                    "free_plan_end_email_notification_sent", False
+                ):
+                    success = send_free_plan_end_notification(email)
+                    if success:
+                        utils_firebase.update_data_firestore_DB(
+                            user_id,
+                            {"free_plan_end_email_notification_sent": True},
+                        )
+                logger.info(
+                    f"Skipping user id {user_id} with email {email}: "
+                    "not enough free trial credits for a newsletter"
+                )
+                return
+
         # get current date in the given timezone
         current_date = datetime.now(timezone)
 
@@ -280,6 +290,8 @@ def run_script_for_user(user):
             skip_audio=False,
             skip_email=False,
             newsletter_email=newsletter_email,
+            # Free credits were reserved above. Paid plans include this
+            # scheduled run independently of their on-demand credit balance.
             credits_usage=None,
         )
         logger.info(f"Successfully generated content for user {email}")

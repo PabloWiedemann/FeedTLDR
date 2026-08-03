@@ -45,11 +45,19 @@ def _plan_name(subscription: dict) -> str:
     return subscription["plan"]["metadata"]["name"].split("_")[0].lower()
 
 
-def sync_plan_with_stripe(uid: str, email: str, current_plan: str) -> dict:
+def sync_plan_with_stripe(
+    uid: str,
+    email: str,
+    current_plan: str,
+    stripe_customer_id: str | None = None,
+) -> dict:
     """Reconcile the stored plan with the live Stripe subscription and return
     the plan info the profile shows. Stripe failures leave the stored plan
     alone rather than downgrading someone who is paying."""
     if current_plan == ADMIN_PLAN:
+        return _unsubscribed(current_plan)
+    # New trial accounts do not get a Stripe customer until checkout.
+    if current_plan == DEFAULT_PLAN and not stripe_customer_id:
         return _unsubscribed(current_plan)
 
     try:

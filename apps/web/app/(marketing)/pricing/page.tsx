@@ -48,7 +48,7 @@ export default function PricingPage() {
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-12 px-6 pt-10 pb-24">
       <PageHeader
         title="Pricing"
-        description="Start free. Upgrade when you want more accounts, more posts per summary, and more credits."
+        description="Start with 50 one-time trial credits. No card, no time limit. Choose Basic or Pro when you need more."
       >
         <ToggleGroup
           type="single"
@@ -75,6 +75,11 @@ export default function PricingPage() {
                 interval={interval}
                 isSignedIn={Boolean(user)}
                 isCurrent={me.data?.plan === plan.id}
+                availableCredits={
+                  me.data
+                    ? me.data.credits.monthly_left + me.data.credits.prepaid_left
+                    : undefined
+                }
                 isBusy={checkout.isPending || portal.isPending}
                 onAction={handleAction}
               />

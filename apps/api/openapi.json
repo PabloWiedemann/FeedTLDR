@@ -633,6 +633,17 @@
             "title": "Name",
             "type": "string"
           },
+          "signup_challenge": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signup Challenge"
+          },
           "tos_accepted": {
             "default": false,
             "title": "Tos Accepted",
@@ -658,6 +669,45 @@
           "created"
         ],
         "title": "RegisterResponse",
+        "type": "object"
+      },
+      "SignupChallengeRequest": {
+        "properties": {
+          "email": {
+            "maxLength": 320,
+            "minLength": 3,
+            "title": "Email",
+            "type": "string"
+          },
+          "turnstile_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Token"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "title": "SignupChallengeRequest",
+        "type": "object"
+      },
+      "SignupChallengeResponse": {
+        "properties": {
+          "challenge_token": {
+            "title": "Challenge Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "challenge_token"
+        ],
+        "title": "SignupChallengeResponse",
         "type": "object"
       },
       "SourceDataResponse": {
@@ -995,7 +1045,7 @@
     },
     "/v1/auth/register": {
       "post": {
-        "description": "Create the Stripe customer + Firestore document for a freshly created\nFirebase Auth user. The client creates the Auth user first (Firebase JS\nSDK), then calls this with its ID token. Idempotent.",
+        "description": "Create the Firestore document for a verified Firebase Auth user.\n\nStripe customer creation is deferred until checkout. The client creates\nthe Auth user first, then calls this with its ID token. Idempotent.",
         "operationId": "register_v1_auth_register_post",
         "parameters": [
           {
@@ -1042,6 +1092,66 @@
           }
         },
         "summary": "Register",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/signup-challenge": {
+      "post": {
+        "description": "Exchange a successful Turnstile check for an email-bound signup proof.",
+        "operationId": "signup_challenge_v1_auth_signup_challenge_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignupChallengeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignupChallengeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Signup Challenge",
         "tags": [
           "auth"
         ]

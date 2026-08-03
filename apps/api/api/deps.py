@@ -10,6 +10,7 @@ from fastapi import Depends, Header, HTTPException
 from firebase_admin import auth as fb_auth
 
 from api.constants import DEFAULT_PLAN, FIELD_PLAN, FIELD_STRIPE_CUSTOMER_ID
+from api.security import verify_app_check_token
 from backend import utils_firebase
 from config.plans_config import PLAN_PROPERTIES
 from utils import get_all_purchased_prepaid_credits_stripe, get_logger
@@ -21,6 +22,7 @@ logger = get_logger("main_logger")
 class AuthUser:
     uid: str
     email: str
+    email_verified: bool
 
 
 @dataclass
@@ -65,7 +67,10 @@ def ensure_firebase() -> None:
         raise HTTPException(status_code=503, detail="Firebase is not configured")
 
 
-def get_current_user(authorization: str = Header(default="")) -> AuthUser:
+def get_current_user(
+    authorization: str = Header(default=""),
+    x_firebase_appcheck: str | None = Header(default=None, alias="X-Firebase-AppCheck"),
+) -> AuthUser:
     """Verify the Firebase ID token from the Authorization header.
 
     The uid and email always come from the verified token, never from the
@@ -76,12 +81,17 @@ def get_current_user(authorization: str = Header(default="")) -> AuthUser:
     token = authorization.removeprefix("Bearer ").strip()
 
     ensure_firebase()
+    verify_app_check_token(x_firebase_appcheck)
     try:
         decoded = fb_auth.verify_id_token(token)
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-    return AuthUser(uid=decoded["uid"], email=decoded.get("email") or "")
+    return AuthUser(
+        uid=decoded["uid"],
+        email=decoded.get("email") or "",
+        email_verified=bool(decoded.get("email_verified")),
+    )
 
 
 def known_plan(plan: str | None, uid: str = "") -> str:
@@ -118,9 +128,7 @@ def load_credit_state(
     prepaid_limit = 0
     if stripe_customer_id:
         try:
-            prepaid_limit = get_all_purchased_prepaid_credits_stripe(
-                stripe_customer_id
-            )
+            prepaid_limit = get_all_purchased_prepaid_credits_stripe(stripe_customer_id)
         except Exception as e:
             logger.warning(f"Could not load prepaid credits from Stripe: {e}")
 

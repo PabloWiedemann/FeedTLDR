@@ -20,7 +20,9 @@ export function UsageSummary({ usage }: { usage: BillingUsage }) {
 
   return (
     <section className="flex max-w-xl flex-col gap-5 border-t pt-10">
-      <h2 className="text-section">Your usage this period</h2>
+      <h2 className="text-section">
+        {usage.plan === "free" ? "Your free trial usage" : "Your usage this period"}
+      </h2>
       <div className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between text-sm">
           <span>Credits</span>

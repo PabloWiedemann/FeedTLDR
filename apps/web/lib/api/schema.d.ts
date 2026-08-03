@@ -32,11 +32,32 @@ export interface paths {
         put?: never;
         /**
          * Register
-         * @description Create the Stripe customer + Firestore document for a freshly created
-         *     Firebase Auth user. The client creates the Auth user first (Firebase JS
-         *     SDK), then calls this with its ID token. Idempotent.
+         * @description Create the Firestore document for a verified Firebase Auth user.
+         *
+         *     Stripe customer creation is deferred until checkout. The client creates
+         *     the Auth user first, then calls this with its ID token. Idempotent.
          */
         post: operations["register_v1_auth_register_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/signup-challenge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Signup Challenge
+         * @description Exchange a successful Turnstile check for an email-bound signup proof.
+         */
+        post: operations["signup_challenge_v1_auth_signup_challenge_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -639,6 +660,8 @@ export interface components {
              * @default
              */
             name: string;
+            /** Signup Challenge */
+            signup_challenge?: string | null;
             /**
              * Tos Accepted
              * @default false
@@ -654,6 +677,18 @@ export interface components {
             already_registered: boolean;
             /** Created */
             created: boolean;
+        };
+        /** SignupChallengeRequest */
+        SignupChallengeRequest: {
+            /** Email */
+            email: string;
+            /** Turnstile Token */
+            turnstile_token?: string | null;
+        };
+        /** SignupChallengeResponse */
+        SignupChallengeResponse: {
+            /** Challenge Token */
+            challenge_token: string;
         };
         /** SourceDataResponse */
         SourceDataResponse: {
@@ -822,6 +857,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RegisterResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    signup_challenge_v1_auth_signup_challenge_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Firebase-AppCheck"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignupChallengeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignupChallengeResponse"];
                 };
             };
             /** @description Validation Error */

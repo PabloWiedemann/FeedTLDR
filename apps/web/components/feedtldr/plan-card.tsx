@@ -27,19 +27,32 @@ export function planAction(
   const isFree = plan.id === FREE_PLAN;
 
   if (!isSignedIn) {
-    return { label: isFree ? "Start free" : "Get started", intent: "signup" };
+    return {
+      label: isFree ? "Start free trial" : "Get started",
+      intent: "signup",
+    };
   }
   if (isCurrent) {
     return isFree
-      ? { label: "Current plan", intent: "none" }
+      ? { label: "Current trial", intent: "none" }
       : { label: "Manage subscription", intent: "portal" };
   }
   return isFree
-    ? { label: "Downgrade in portal", intent: "portal" }
+    ? { label: "Trial for new accounts", intent: "none" }
     : { label: `Switch to ${plan.id}`, intent: "checkout" };
 }
 
 function planFeatures(plan: Plan): string[] {
+  if (plan.id === FREE_PLAN) {
+    return [
+      `${formatCount(plan.max_followers)} accounts to follow`,
+      `${formatCount(plan.max_tweets_per_generation)} posts per summary`,
+      `${formatCount(plan.max_credits)} one-time trial credits`,
+      "Credits cover summaries, chat, and weekday newsletters",
+      "Audio summaries",
+      "No card required",
+    ];
+  }
   return [
     `${formatCount(plan.max_followers)} accounts to follow`,
     `${formatCount(plan.max_tweets_per_generation)} posts per summary`,
@@ -54,6 +67,7 @@ export function PlanCard({
   interval,
   isSignedIn,
   isCurrent,
+  availableCredits,
   isBusy,
   onAction,
 }: {
@@ -61,6 +75,7 @@ export function PlanCard({
   interval: BillingInterval;
   isSignedIn: boolean;
   isCurrent: boolean;
+  availableCredits?: number;
   isBusy: boolean;
   onAction: (intent: PlanIntent, priceId: string | null | undefined) => void;
 }) {
@@ -68,20 +83,25 @@ export function PlanCard({
   const priceId =
     interval === "month" ? plan.price_id_month : plan.price_id_year;
   const action = planAction(plan, { isSignedIn, isCurrent });
+  const isFree = plan.id === FREE_PLAN;
+  const trialComplete = isFree && isCurrent && (availableCredits ?? 1) < 3;
   // One filled button per row: the paid plan the visitor does not have yet.
   const isPrimaryAction = !isCurrent && plan.id !== FREE_PLAN;
 
   return (
     <Card className={plan.id === FEATURED_PLAN ? "border-foreground/40" : undefined}>
       <CardHeader>
-        <CardTitle className="capitalize">{plan.id}</CardTitle>
+        <CardTitle className={isFree ? undefined : "capitalize"}>
+          {isFree ? "Free trial" : plan.id}
+        </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-6">
         <p className="text-3xl font-semibold tabular-nums">
           ${price ?? 0}
           <span className="text-sm font-normal text-muted-foreground">
-            {" "}
-            / {interval}
+            {isFree
+              ? ` · ${formatCount(plan.max_credits)} credits total`
+              : ` / ${interval}`}
           </span>
         </p>
         <ul className="flex flex-col gap-2">
@@ -103,7 +123,7 @@ export function PlanCard({
             onClick={() => onAction(action.intent, priceId)}
           >
             {isBusy && <Spinner />}
-            {action.label}
+            {trialComplete ? "Trial credits used" : action.label}
           </Button>
         </div>
       </CardContent>

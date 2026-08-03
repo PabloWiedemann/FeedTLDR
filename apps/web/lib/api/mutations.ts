@@ -21,7 +21,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   no_verified_accounts:
     "Verify at least one account in settings before generating.",
   insufficient_credits:
-    "Not enough credits. Upgrade your plan or buy more credits.",
+    "You have used the credits available. Compare plans to continue.",
 };
 
 export function errorMessage(error: Error): string {

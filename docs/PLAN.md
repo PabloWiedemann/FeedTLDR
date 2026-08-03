@@ -20,7 +20,7 @@
 | Chat | AI chat about the feed (OpenAI `gpt-4o-mini` with feed context), credits per message |
 | Billing | Plans free/basic/pro/admin (`plans_config`), monthly + prepaid credits, usage tracking, Stripe subscription sync, portal |
 | Profile | Name edit, avatar (generated initials), delete account (Auth + Firestore + Stripe + confirmation email), logout |
-| Daemon | `gen_script.py`: hourly check, generates + emails newsletters at 7am per user timezone, weekdays only, free-trial caps (5 newsletters), monthly usage resets on Stripe period |
+| Daemon | `gen_script.py`: hourly check, generates + emails newsletters at 7am per user timezone, weekdays only, shared one-time trial credit enforcement, monthly paid-plan usage resets on Stripe period |
 
 ### 1.2 The pipeline (unchanged, the crown jewels)
 
