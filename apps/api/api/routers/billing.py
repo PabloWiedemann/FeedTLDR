@@ -32,17 +32,26 @@ def get_plans():
     return schemas.PlansResponse(plans=plans)
 
 
-def _require_stripe_customer(user: UserContext) -> str:
-    if not user.stripe_customer_id:
+def _stripe_customer_id(user: UserContext, create: bool = False) -> str:
+    stripe_id = user.stripe_customer_id
+    if not stripe_id and create:
+        try:
+            stripe_id = stripe_state.create_stripe_customer(user.email, user.uid)
+            utils_firebase.update_data_firestore_DB(
+                user.uid, {"stripe_customer_id": stripe_id}
+            )
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"Stripe error: {e}")
+    if not stripe_id:
         raise HTTPException(status_code=400, detail="missing_stripe_customer")
-    return user.stripe_customer_id
+    return stripe_id
 
 
 @router.post("/checkout", response_model=schemas.UrlResponse)
 def create_checkout(
     body: schemas.CheckoutRequest, user: UserContext = Depends(get_user_context)
 ):
-    stripe_id = _require_stripe_customer(user)
+    stripe_id = _stripe_customer_id(user, create=True)
     try:
         url = stripe_state.create_checkout_session(user.uid, stripe_id, body.price_id)
     except Exception as e:
@@ -52,7 +61,7 @@ def create_checkout(
 
 @router.post("/portal", response_model=schemas.UrlResponse)
 def create_portal(user: UserContext = Depends(get_user_context)):
-    stripe_id = _require_stripe_customer(user)
+    stripe_id = _stripe_customer_id(user)
     try:
         url = stripe_state.create_portal_session(stripe_id)
     except Exception as e:

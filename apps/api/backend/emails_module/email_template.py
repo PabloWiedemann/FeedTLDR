@@ -134,11 +134,11 @@ def get_delete_account_content():
 def get_free_plan_end_notification_content():
     return """
     <div style="text-align: center; padding-top: 24px; padding-bottom: 24px;">
-        <h2>Your FeedTLDR Free Trial Has Ended</h2>
-        <p>Thank you for trying FeedTLDR! Your free trial period has now concluded.</p>
-        <p>To continue receiving your personalized feed summaries and newsletters, please upgrade to one of our premium plans.</p>
+        <h2>Your Free Daily Summaries Are Paused</h2>
+        <p>You no longer have enough trial credits for another daily summary and newsletter.</p>
+        <p>Your account and existing summaries are still available. Choose Basic or Pro to generate new summaries, use chat, and restart your weekday newsletters.</p>
         <div style="margin-top: 24px;">
-            <a href="https://feedtldr.com/" style="
+            <a href="https://feedtldr.com/pricing" style="
                 background-color: #4A90E2;
                 color: white;
                 padding: 12px 24px;
@@ -146,7 +146,7 @@ def get_free_plan_end_notification_content():
                 border-radius: 4px;
                 font-weight: bold;
                 display: inline-block;
-            ">Upgrade Now</a>
+            ">Compare Plans</a>
         </div>
         <p style="margin-top: 24px; font-size: 14px; color: #666;">
             If you have any questions about our plans or need assistance, please <a href="mailto:info@toriml.com" style="color: #4A90E2; text-decoration: underline;">contact our support team</a>.

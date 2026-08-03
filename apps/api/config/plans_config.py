@@ -4,7 +4,6 @@ PLAN_PROPERTIES = {
         "limits": {
             "max_followers": 1000000,  # Max. allowed accounts to scrape. -1 means unlimited accounts.
             "max_tweets_per_generation": 1000,  # Number of tweets to scrape per account
-            "max_newsletters_sent": 1000000,  # Number of newsletter emails
             "max_credits": 1000000,
         },
     },
@@ -13,7 +12,6 @@ PLAN_PROPERTIES = {
         "limits": {
             "max_followers": 200,  # Max. allowed accounts to scrape. -1 means unlimited accounts.
             "max_tweets_per_generation": 250,  # Number of tweets to scrape per account
-            "max_newsletters_sent": 5,  # Number of newsletter emails
             "max_credits": 50,
         },
         "price": {"month": 0, "year": 0},

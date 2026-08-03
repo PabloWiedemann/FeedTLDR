@@ -145,6 +145,6 @@ def send_free_plan_end_notification(target_email):
     success = send_email(
         target_email,
         content,
-        subject="Your FeedTLDR Free Trial Has Ended",
+        subject="Your free FeedTLDR summaries are paused",
     )
     return success

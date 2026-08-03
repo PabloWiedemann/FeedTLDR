@@ -19,6 +19,7 @@ def test_openapi_exports_expected_paths():
     assert r.status_code == 200
     paths = r.json()["paths"]
     expected = [
+        "/v1/auth/signup-challenge",
         "/v1/auth/register",
         "/v1/me",
         "/v1/settings",
@@ -78,6 +79,15 @@ def test_generation_cost_math_matches_calculator():
     assert resummarize < full
 
 
+def test_credit_reservation_is_all_or_nothing():
+    from backend.utils_firebase import allocate_credit_reservation
+
+    assert allocate_credit_reservation(40, 0, 8, 50, 0) == (48, 0)
+    assert allocate_credit_reservation(48, 2, 5, 50, 10) == (50, 5)
+    with __import__("pytest").raises(ValueError, match="insufficient_credits"):
+        allocate_credit_reservation(48, 9, 5, 50, 10)
+
+
 def test_generation_lock_logic():
     from api.services import generation_is_locked
 
@@ -85,7 +95,9 @@ def test_generation_lock_logic():
     assert generation_is_locked("success", None) is False
     assert generation_is_locked("error", None) is False
     # stale in_progress runs do not lock forever
-    assert generation_is_locked("in_progress", "2020-01-01 00:00:00 UTC(+0000)") is False
+    assert (
+        generation_is_locked("in_progress", "2020-01-01 00:00:00 UTC(+0000)") is False
+    )
 
 
 def test_sanitizer_strips_scripts():

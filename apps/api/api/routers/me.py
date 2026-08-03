@@ -42,7 +42,10 @@ def get_me(user: AuthUser = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="User not registered")
 
     plan_info = services.sync_plan_with_stripe(
-        user.uid, user.email, data.get("plan") or "free"
+        user.uid,
+        user.email,
+        data.get("plan") or "free",
+        data.get("stripe_customer_id"),
     )
     plan = plan_info["plan"]
     credits: CreditState = load_credit_state(
@@ -74,7 +77,9 @@ def get_me(user: AuthUser = Depends(get_current_user)):
 
 
 @router.patch("", response_model=schemas.Message)
-def update_me(body: schemas.UpdateMeRequest, user: AuthUser = Depends(get_current_user)):
+def update_me(
+    body: schemas.UpdateMeRequest, user: AuthUser = Depends(get_current_user)
+):
     updates = {
         field: getattr(body, name)
         for name, field in _PROFILE_UPDATES.items()

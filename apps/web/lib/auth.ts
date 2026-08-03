@@ -1,15 +1,23 @@
 "use client";
 
 import type { UserCredential } from "firebase/auth";
-import { api } from "@/lib/api/client";
+import {
+  registerAccount as registerPendingAccount,
+  savePendingSignup,
+  type PendingSignup,
+} from "@/lib/signup";
 
 /** Where a completed sign-in should land, depending on whether we have met
  *  this account before. */
-export const AFTER_SIGN_IN = { existing: "/app", new: "/onboarding" } as const;
+export const AFTER_SIGN_IN = {
+  existing: "/app",
+  new: "/onboarding",
+  verify: "/verify-email",
+} as const;
 
 export class AccountSetupError extends Error {
   constructor(detail: string) {
-    super(`Signed in with Google, but account setup failed: ${detail}`);
+    super(`Signed in, but account setup failed: ${detail}`);
     this.name = "AccountSetupError";
   }
 }
@@ -17,7 +25,7 @@ export class AccountSetupError extends Error {
 const MAX_DETAIL_LENGTH = 140;
 
 /**
- * Creates the Firestore document and Stripe customer for a Firebase Auth user.
+ * Creates the Firestore document for a Firebase Auth user.
  * Idempotent, and called from every path that can produce a new account
  * (email signup, Google popup, Google redirect return).
  *
@@ -26,32 +34,27 @@ const MAX_DETAIL_LENGTH = 140;
 export async function registerAccount(
   credential: Pick<UserCredential, "user">
 ): Promise<string> {
-  const result = await api.POST("/v1/auth/register", {
-    body: {
-      name: credential.user.displayName ?? "",
-      avatar: credential.user.photoURL ?? "",
-      is_google_auth: true,
-      tos_accepted: false,
-    },
-  });
-
-  if (result.error) {
-    throw new AccountSetupError(
-      JSON.stringify(result.error).slice(0, MAX_DETAIL_LENGTH)
-    );
+  const pending: PendingSignup = {
+    email: credential.user.email ?? "",
+    name: credential.user.displayName ?? "",
+    avatar: credential.user.photoURL ?? "",
+    isGoogleAuth: credential.user.providerData.some(
+      (provider) => provider.providerId === "google.com"
+    ),
+    challenge: "",
+  };
+  try {
+    const result = await registerPendingAccount(pending);
+    return result.already_registered
+      ? AFTER_SIGN_IN.existing
+      : AFTER_SIGN_IN.new;
+  } catch (error) {
+    if (/email_not_verified|security check/i.test(String(error))) {
+      savePendingSignup(pending);
+      return AFTER_SIGN_IN.verify;
+    }
+    throw new AccountSetupError(String(error).slice(0, MAX_DETAIL_LENGTH));
   }
-
-  return result.data?.already_registered
-    ? AFTER_SIGN_IN.existing
-    : AFTER_SIGN_IN.new;
-}
-
-/** Registers an email/password signup, where the name comes from the form. */
-export async function registerEmailAccount(name: string): Promise<void> {
-  const result = await api.POST("/v1/auth/register", {
-    body: { name, avatar: "", is_google_auth: false, tos_accepted: false },
-  });
-  if (result.error) throw new Error("register_failed");
 }
 
 /** Plain-language explanation for an email/password sign-in failure. */

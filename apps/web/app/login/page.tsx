@@ -9,7 +9,7 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { AuthCard } from "@/components/feedtldr/auth-card";
 import { Spinner } from "@/components/feedtldr/spinner";
-import { loginErrorMessage } from "@/lib/auth";
+import { loginErrorMessage, registerAccount } from "@/lib/auth";
 import { loginWithEmail, resetPassword } from "@/lib/firebase";
 import { useGoogleRedirect } from "@/lib/use-google-redirect";
 import { useGoogleSignIn } from "@/lib/use-google-sign-in";
@@ -29,8 +29,8 @@ export default function LoginPage() {
     setGoogleError(null);
     setBusy(true);
     try {
-      await loginWithEmail(email, password);
-      router.push("/app");
+      const credential = await loginWithEmail(email, password);
+      router.push(await registerAccount(credential));
     } catch (caught) {
       setError(loginErrorMessage(caught));
     } finally {

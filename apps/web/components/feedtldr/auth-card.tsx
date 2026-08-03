@@ -12,12 +12,16 @@ export function AuthCard({
   children,
   onGoogle,
   googleLabel,
+  googleDisabled = false,
+  googleBusy = false,
   footer,
 }: {
   title: string;
   children: React.ReactNode;
   onGoogle: () => void;
   googleLabel: string;
+  googleDisabled?: boolean;
+  googleBusy?: boolean;
   footer: React.ReactNode;
 }) {
   return (
@@ -34,8 +38,17 @@ export function AuthCard({
             <span className="text-xs text-muted-foreground">or</span>
             <Separator className="flex-1" />
           </div>
-          <Button type="button" variant="outline" onClick={onGoogle}>
-            <GoogleLogo weight="bold" /> {googleLabel}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onGoogle}
+            disabled={googleDisabled}
+          >
+            <GoogleLogo
+              weight="bold"
+              className={googleBusy ? "animate-pulse" : undefined}
+            />{" "}
+            {googleBusy ? "Connecting…" : googleLabel}
           </Button>
         </CardContent>
       </Card>

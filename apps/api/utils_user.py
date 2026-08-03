@@ -42,15 +42,6 @@ def register_user_in_db_core(
 
     Returns the created user_data dict. Raises on failure.
     """
-    # Create customer in Stripe
-    new_customer = stripe.Customer.create(
-        email=email,
-        metadata={
-            "firebase_uid": uid,
-            "client_reference_id": uid,
-        },
-    )
-
     # Data to store (structure identical to the legacy register_user_in_db)
     user_data = {
         "name": name,
@@ -60,6 +51,9 @@ def register_user_in_db_core(
         "is_google_account": is_google_auth,
         "plan": "free",
         "n_prepaid_credits": 0,
+        # Lifetime counter. Unlike monthly plan_usage, this is never reset, so
+        # upgrading and later downgrading cannot grant another free trial.
+        "trial_credits_used": 0,
         "plan_usage": {
             "admin": {
                 "n_generations": 0,
@@ -123,7 +117,9 @@ def register_user_in_db_core(
         "TOS_accepted": TOS_accepted,
         "onboarded": False,
         "onboarding_step": 0,
-        "stripe_customer_id": new_customer.id,
+        # Created lazily only when the user chooses a paid plan. A free signup
+        # therefore needs no card and makes no Stripe API call.
+        "stripe_customer_id": "",
     }
 
     # ======== REGISTER IN FIRESTORE DB ===========

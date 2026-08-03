@@ -1,6 +1,6 @@
 import createClient from "openapi-fetch";
 import type { paths } from "./schema";
-import { getIdToken } from "@/lib/firebase";
+import { getFirebaseAppCheckToken, getIdToken } from "@/lib/firebase";
 
 /**
  * Typed API client generated from apps/api/openapi.json (run `pnpm gen:api`
@@ -15,6 +15,10 @@ api.use({
     const token = await getIdToken();
     if (token) {
       request.headers.set("Authorization", `Bearer ${token}`);
+    }
+    const appCheckToken = await getFirebaseAppCheckToken();
+    if (appCheckToken) {
+      request.headers.set("X-Firebase-AppCheck", appCheckToken);
     }
     return request;
   },

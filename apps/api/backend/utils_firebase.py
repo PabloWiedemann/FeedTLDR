@@ -28,15 +28,19 @@ def initialize_firebase_client(project_dir=None):
         credentials_dir = os.environ.get("CREDENTIALS_DIR")
     else:
         credentials_dir = "credentials"
-    credentials_file_path = os.path.join(PROJECT_DIR, credentials_dir, "firebase_credentials_secret_prod.json")
+    credentials_file_path = os.path.join(
+        PROJECT_DIR, credentials_dir, "firebase_credentials_secret_prod.json"
+    )
 
     try:
         if not os.path.exists(credentials_file_path):
             logger.error(f"❌ Credentials file not found: {credentials_file_path}")
-            raise FileNotFoundError(f"Credentials directory not found: {credentials_file_path}")
-        
+            raise FileNotFoundError(
+                f"Credentials directory not found: {credentials_file_path}"
+            )
+
         cred = credentials.Certificate(credentials_file_path)
-        
+
         firebase_admin.initialize_app(
             cred,
             {
@@ -128,7 +132,7 @@ def upload_files_to_firebase_storage(
 
                 # Upload to historical folder
                 # Skip historical upload for audio files
-                if not file_name.endswith('.mp3'):
+                if not file_name.endswith(".mp3"):
                     historical_path = f"{historical_base_path}/{file_name}"
                     historical_blob = bucket.blob(historical_path)
                     historical_blob.upload_from_filename(file_path)
@@ -1006,22 +1010,142 @@ def reset_all_plans_usage(uid: str) -> bool:
         return False
 
 
+def ensure_trial_credit_counter(uid: str) -> int:
+    """Atomically migrate an existing user's legacy free-credit usage.
+
+    The top-level counter survives paid-plan resets. Initializing it in a
+    transaction prevents a concurrent reservation from being overwritten by a
+    stale migration value.
+    """
+    firestore_db = firestore.client()
+    customer_ref = firestore_db.collection("customers").document(uid)
+
+    @firestore.transactional
+    def migrate_transaction(transaction, user_ref):
+        snapshot = user_ref.get(transaction=transaction)
+        if not snapshot.exists:
+            return 0
+        user_data = snapshot.to_dict() or {}
+        existing = user_data.get("trial_credits_used")
+        if existing is not None:
+            return existing
+        legacy_used = (
+            user_data.get("plan_usage", {}).get("free", {}).get("n_credits") or 0
+        )
+        transaction.update(user_ref, {"trial_credits_used": legacy_used})
+        return legacy_used
+
+    return migrate_transaction(firestore_db.transaction(), customer_ref)
+
+
 def compute_credits_left(
     uid: str, plan: str, monthly_credits_limit: int, prepaid_credits_limit: int
 ):
-    current_monthly_credits, current_prepaid_credits = list(
-        get_specific_user_data(
-            uid,
-            [f"plan_usage.{plan}.n_credits", "n_prepaid_credits"],
-        ).values()
-    )
+    fields = [f"plan_usage.{plan}.n_credits", "n_prepaid_credits"]
+    if plan == "free":
+        fields.append("trial_credits_used")
+    data = get_specific_user_data(uid, fields) or {}
+    current_monthly_credits = data.get(f"plan_usage.{plan}.n_credits")
+    current_prepaid_credits = data.get("n_prepaid_credits")
+    # `trial_credits_used` is deliberately outside plan_usage: paid-plan resets
+    # must never restore a second free trial. Existing users fall back to the
+    # legacy plan_usage counter until their next reservation writes the field.
+    if plan == "free":
+        if data.get("trial_credits_used") is not None:
+            current_monthly_credits = data["trial_credits_used"]
+        else:
+            current_monthly_credits = ensure_trial_credit_counter(uid)
     if current_monthly_credits is None:
         current_monthly_credits = 0
     if current_prepaid_credits is None:
         current_prepaid_credits = 0
-    current_monthly_credits_left = monthly_credits_limit - current_monthly_credits
-    current_prepaid_credits_left = prepaid_credits_limit - current_prepaid_credits
+    current_monthly_credits_left = max(
+        0, monthly_credits_limit - current_monthly_credits
+    )
+    current_prepaid_credits_left = max(
+        0, prepaid_credits_limit - current_prepaid_credits
+    )
     return current_monthly_credits_left, current_prepaid_credits_left
+
+
+def reserve_credit_usage(
+    uid: str,
+    plan: str,
+    task_credit_cost: float,
+    monthly_credits_limit: int,
+    prepaid_credits_limit: int = 0,
+):
+    """Atomically reserve credits before an external paid service is called.
+
+    Charging first prevents two simultaneous requests from both passing a
+    stale balance check. Reservations are intentionally not refunded when a
+    provider fails: the request can already have incurred scraping/model cost.
+
+    Returns the new ``(monthly_used, prepaid_used)`` totals. Raises
+    ``ValueError('insufficient_credits')`` when the balance cannot cover the
+    whole action.
+    """
+    task_credit_cost = math.ceil(task_credit_cost)
+    if task_credit_cost <= 0:
+        return 0, 0
+
+    firestore_db = firestore.client()
+    customer_ref = firestore_db.collection("customers").document(uid)
+
+    @firestore.transactional
+    def reserve_transaction(transaction, user_ref):
+        snapshot = user_ref.get(transaction=transaction)
+        if not snapshot.exists:
+            raise LookupError("User not registered")
+
+        user_data = snapshot.to_dict() or {}
+        plan_usage = user_data.get("plan_usage", {})
+        current_plan_usage = plan_usage.get(plan, {})
+        monthly_used = current_plan_usage.get("n_credits") or 0
+        if plan == "free" and user_data.get("trial_credits_used") is not None:
+            monthly_used = user_data["trial_credits_used"]
+        prepaid_used = user_data.get("n_prepaid_credits") or 0
+
+        monthly_used, prepaid_used = allocate_credit_reservation(
+            monthly_used,
+            prepaid_used,
+            task_credit_cost,
+            monthly_credits_limit,
+            prepaid_credits_limit,
+        )
+
+        updates = {
+            f"plan_usage.{plan}.n_credits": monthly_used,
+            "n_prepaid_credits": prepaid_used,
+        }
+        if plan == "free":
+            updates["trial_credits_used"] = monthly_used
+        transaction.update(user_ref, updates)
+        return monthly_used, prepaid_used
+
+    return reserve_transaction(firestore_db.transaction(), customer_ref)
+
+
+def allocate_credit_reservation(
+    monthly_used: int,
+    prepaid_used: int,
+    task_credit_cost: float,
+    monthly_credits_limit: int,
+    prepaid_credits_limit: int,
+):
+    """Pure allocation math used inside the Firestore transaction."""
+    task_credit_cost = math.ceil(task_credit_cost)
+    monthly_left = max(0, monthly_credits_limit - monthly_used)
+    prepaid_left = max(0, prepaid_credits_limit - prepaid_used)
+    if monthly_left + prepaid_left < task_credit_cost:
+        raise ValueError("insufficient_credits")
+
+    monthly_spend = min(task_credit_cost, monthly_left)
+    prepaid_spend = task_credit_cost - monthly_spend
+    return (
+        math.ceil(monthly_used + monthly_spend),
+        math.ceil(prepaid_used + prepaid_spend),
+    )
 
 
 def update_credit_usage(

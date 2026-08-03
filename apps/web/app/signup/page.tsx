@@ -8,8 +8,15 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { AuthCard } from "@/components/feedtldr/auth-card";
 import { Spinner } from "@/components/feedtldr/spinner";
-import { registerEmailAccount, signupErrorMessage } from "@/lib/auth";
-import { signupWithEmail } from "@/lib/firebase";
+import { Turnstile } from "@/components/feedtldr/turnstile";
+import { signupErrorMessage } from "@/lib/auth";
+import { sendVerification, signupWithEmail } from "@/lib/firebase";
+import {
+  requestSignupChallenge,
+  savePendingSignup,
+  turnstileConfigured,
+  type PendingSignup,
+} from "@/lib/signup";
 import { useGoogleRedirect } from "@/lib/use-google-redirect";
 import { useGoogleSignIn } from "@/lib/use-google-sign-in";
 
@@ -35,6 +42,8 @@ export default function SignupPage() {
   const [confirmation, setConfirmation] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [securityKey, setSecurityKey] = useState(0);
   const { redirectError, completing } = useGoogleRedirect();
   const { signIn, googleError, setGoogleError } = useGoogleSignIn();
 
@@ -48,11 +57,27 @@ export default function SignupPage() {
     setGoogleError(null);
     setBusy(true);
     try {
-      await signupWithEmail(email, password);
-      await registerEmailAccount(name);
-      router.push("/onboarding");
+      const challenge = await requestSignupChallenge(email, turnstileToken);
+      const credential = await signupWithEmail(email, password);
+      const pending: PendingSignup = {
+        email: credential.user.email ?? email,
+        name,
+        avatar: "",
+        isGoogleAuth: false,
+        challenge,
+      };
+      savePendingSignup(pending);
+      await sendVerification(credential.user).catch(() => undefined);
+      router.push("/verify-email");
     } catch (caught) {
-      setError(signupErrorMessage(caught));
+      const message = String(caught).replace(/^Error:\s*/, "");
+      setError(
+        /security check|signup attempts/i.test(message)
+          ? message
+          : signupErrorMessage(caught)
+      );
+      setTurnstileToken(null);
+      setSecurityKey((value) => value + 1);
     } finally {
       setBusy(false);
     }
@@ -123,12 +148,21 @@ export default function SignupPage() {
           )}
         </Field>
         <FieldError>{error ?? googleError ?? redirectError}</FieldError>
+        <Turnstile key={securityKey} onTokenChange={setTurnstileToken} />
         {completing && (
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
             <Spinner className="size-4" /> Completing sign-in…
           </p>
         )}
-        <Button type="submit" disabled={busy || completing || !canSubmit}>
+        <Button
+          type="submit"
+          disabled={
+            busy ||
+            completing ||
+            !canSubmit ||
+            (turnstileConfigured && !turnstileToken)
+          }
+        >
           {busy && <Spinner />}
           Create account
         </Button>

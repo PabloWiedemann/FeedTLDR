@@ -51,9 +51,8 @@ def _load_context(uid: str) -> str:
     return f"{CHAT_CONTEXT_PROMPT} \n\n {posts} \n\n {summary_html}"
 
 
-def _record_usage(uid: str, plan: str, response, cost: int, credit_state) -> None:
-    """Usage count, token cost, and credit deduction — the three books the
-    legacy chat page kept per message."""
+def _record_usage(uid: str, plan: str, response) -> None:
+    """Record the completed message and model usage after credits reserve."""
     current = utils_firebase.get_specific_user_data(
         uid, [f"plan_usage.{plan}.n_chat_messages"]
     )
@@ -74,21 +73,20 @@ def _record_usage(uid: str, plan: str, response, cost: int, credit_state) -> Non
         },
     )
 
-    utils_firebase.update_credit_usage(uid, plan, cost, *credit_state)
-
 
 def chat_completion(
     uid: str, plan: str, messages: list[dict], credit_state: tuple[int, int, int, int]
 ) -> str:
     """Answer one question about the user's feed, charging a credit for it."""
-    monthly_left, prepaid_left, _, _ = credit_state
+    monthly_left, prepaid_left, monthly_limit, prepaid_limit = credit_state
     cost = credits_calculator.compute_chat_message_credits_per_message()
     if monthly_left + prepaid_left < cost:
         raise ValueError(ERROR_INSUFFICIENT_CREDITS)
 
+    utils_firebase.reserve_credit_usage(uid, plan, cost, monthly_limit, prepaid_limit)
+
     conversation = [{"role": "developer", "content": _load_context(uid)}] + [
-        {"role": message["role"], "content": message["content"]}
-        for message in messages
+        {"role": message["role"], "content": message["content"]} for message in messages
     ]
 
     client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
@@ -99,5 +97,5 @@ def chat_completion(
         stream=False,
     )
 
-    _record_usage(uid, plan, response, cost, credit_state)
+    _record_usage(uid, plan, response)
     return response.choices[0].message.content or ""

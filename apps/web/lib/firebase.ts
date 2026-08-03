@@ -1,5 +1,11 @@
 import { getApps, initializeApp } from "firebase/app";
 import {
+  ReCaptchaEnterpriseProvider,
+  getToken as getAppCheckTokenFromFirebase,
+  initializeAppCheck,
+  type AppCheck,
+} from "firebase/app-check";
+import {
   GoogleAuthProvider,
   browserLocalPersistence,
   browserPopupRedirectResolver,
@@ -10,6 +16,8 @@ import {
   indexedDBLocalPersistence,
   initializeAuth,
   onAuthStateChanged,
+  reload,
+  sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -37,6 +45,19 @@ const firebaseConfig = {
 };
 
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+let appCheckInstance: AppCheck | null = null;
+
+function getAppCheckInstance(): AppCheck | null {
+  const siteKey = process.env.NEXT_PUBLIC_FIREBASE_APP_CHECK_SITE_KEY;
+  if (typeof window === "undefined" || !siteKey) return null;
+  if (!appCheckInstance) {
+    appCheckInstance = initializeAppCheck(app, {
+      provider: new ReCaptchaEnterpriseProvider(siteKey),
+      isTokenAutoRefreshEnabled: true,
+    });
+  }
+  return appCheckInstance;
+}
 
 // In the browser, declare a persistence fallback chain so restricted storage
 // environments (private windows, in-app browsers) degrade to in-memory auth
@@ -60,6 +81,17 @@ export async function getIdToken(): Promise<string | null> {
   return user.getIdToken();
 }
 
+export async function getFirebaseAppCheckToken(): Promise<string | null> {
+  const instance = getAppCheckInstance();
+  if (!instance) return null;
+  try {
+    return (await getAppCheckTokenFromFirebase(instance)).token;
+  } catch (error) {
+    console.warn("Firebase App Check token unavailable", error);
+    return null;
+  }
+}
+
 export function watchAuth(callback: (user: User | null) => void) {
   return onAuthStateChanged(auth, callback);
 }
@@ -70,6 +102,20 @@ export function loginWithEmail(email: string, password: string) {
 
 export function signupWithEmail(email: string, password: string) {
   return createUserWithEmailAndPassword(auth, email, password);
+}
+
+export async function sendVerification(user: User) {
+  await sendEmailVerification(user, {
+    url: `${window.location.origin}/verify-email`,
+  });
+}
+
+export async function refreshCurrentUser(): Promise<User | null> {
+  const user = auth.currentUser;
+  if (!user) return null;
+  await reload(user);
+  await user.getIdToken(true);
+  return auth.currentUser;
 }
 
 /**
