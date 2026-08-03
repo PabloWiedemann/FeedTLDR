@@ -20,7 +20,7 @@ export function SiteFooter() {
             <li key={link.href}>
               <Link
                 href={link.href}
-                className="rounded-full text-sm text-muted-foreground outline-none transition-colors duration-150 hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/45"
+                className="rounded-full text-sm text-muted-foreground outline-none transition-colors duration-150 hover:text-foreground focus-ring"
               >
                 {link.label}
               </Link>

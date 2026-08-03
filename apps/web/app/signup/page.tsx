@@ -3,26 +3,27 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
-import { CircleNotch } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { AuthCard } from "@/components/feedtldr/auth-card";
-import { api } from "@/lib/api/client";
-import {
-  googleErrorMessage,
-  loginWithGoogle,
-  signupWithEmail,
-} from "@/lib/firebase";
+import { Spinner } from "@/components/feedtldr/spinner";
+import { registerEmailAccount, signupErrorMessage } from "@/lib/auth";
+import { signupWithEmail } from "@/lib/firebase";
 import { useGoogleRedirect } from "@/lib/use-google-redirect";
+import { useGoogleSignIn } from "@/lib/use-google-sign-in";
 
-// Same requirements as the legacy signup validation
-function passwordProblems(password: string, confirm: string): string[] {
+const PASSWORD_MIN_LENGTH = 8;
+
+/** Unmet password requirements, phrased as the rules themselves. */
+function passwordProblems(password: string, confirmation: string): string[] {
   const problems: string[] = [];
-  if (password.length < 8) problems.push("At least 8 characters");
+  if (password.length < PASSWORD_MIN_LENGTH)
+    problems.push(`At least ${PASSWORD_MIN_LENGTH} characters`);
   if (!/[A-Z]/.test(password)) problems.push("One uppercase letter");
   if (!/[0-9]/.test(password)) problems.push("One number");
-  if (confirm !== "" && password !== confirm) problems.push("Passwords match");
+  if (confirmation !== "" && password !== confirmation)
+    problems.push("Passwords match");
   return problems;
 }
 
@@ -31,75 +32,36 @@ export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
+  const [confirmation, setConfirmation] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const { redirectError, completing } = useGoogleRedirect();
+  const { signIn, googleError, setGoogleError } = useGoogleSignIn();
 
-  const problems = passwordProblems(password, confirm);
+  const problems = passwordProblems(password, confirmation);
+  const canSubmit = problems.length === 0 && password === confirmation;
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (problems.length > 0 || password !== confirm) return;
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    if (!canSubmit) return;
     setError(null);
+    setGoogleError(null);
     setBusy(true);
     try {
       await signupWithEmail(email, password);
-      const result = await api.POST("/v1/auth/register", {
-        body: {
-          name,
-          avatar: "",
-          is_google_auth: false,
-          tos_accepted: false,
-        },
-      });
-      if (result.error) {
-        throw new Error("register_failed");
-      }
+      await registerEmailAccount(name);
       router.push("/onboarding");
-    } catch (err) {
-      const message = String(err);
-      if (message.includes("email-already-in-use")) {
-        setError("An account with this email already exists. Log in instead.");
-      } else {
-        setError("Could not create your account. Try again.");
-      }
+    } catch (caught) {
+      setError(signupErrorMessage(caught));
     } finally {
       setBusy(false);
-    }
-  }
-
-  async function google() {
-    setError(null);
-    try {
-      const cred = await loginWithGoogle();
-      if (!cred) return; // redirect flow: the page is navigating to Google
-      const result = await api.POST("/v1/auth/register", {
-        body: {
-          name: cred.user.displayName ?? "",
-          avatar: cred.user.photoURL ?? "",
-          is_google_auth: true,
-          tos_accepted: false,
-        },
-      });
-      if (result.error) {
-        setError(
-          `Signed in with Google, but account setup failed: ${JSON.stringify(result.error).slice(0, 140)}`
-        );
-        return;
-      }
-      router.push(
-        result.data?.already_registered ? "/app" : "/onboarding"
-      );
-    } catch (err) {
-      setError(googleErrorMessage(err));
     }
   }
 
   return (
     <AuthCard
       title="Create your account"
-      onGoogle={google}
+      onGoogle={signIn}
       googleLabel="Sign up with Google"
       footer={
         <p>
@@ -111,68 +73,63 @@ export default function SignupPage() {
       }
     >
       <form onSubmit={submit} className="flex flex-col gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="name">Name</Label>
+        <Field>
+          <FieldLabel htmlFor="name">Name</FieldLabel>
           <Input
             id="name"
             autoComplete="name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(event) => setName(event.target.value)}
           />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="email">Email</Label>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="email">Email</FieldLabel>
           <Input
             id="email"
             type="email"
             autoComplete="email"
             required
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(event) => setEmail(event.target.value)}
           />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="password">Password</Label>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="password">Password</FieldLabel>
           <Input
             id="password"
             type="password"
             autoComplete="new-password"
             required
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(event) => setPassword(event.target.value)}
           />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="confirm">Confirm password</Label>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="confirm">Confirm password</FieldLabel>
           <Input
             id="confirm"
             type="password"
             autoComplete="new-password"
             required
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
+            value={confirmation}
+            onChange={(event) => setConfirmation(event.target.value)}
           />
           {password !== "" && problems.length > 0 && (
             <ul className="flex flex-col gap-1 text-xs text-muted-foreground">
-              {problems.map((p) => (
-                <li key={p}>• {p}</li>
+              {problems.map((problem) => (
+                <li key={problem}>• {problem}</li>
               ))}
             </ul>
           )}
-        </div>
-        {(error ?? redirectError) && (
-          <p role="alert" className="text-sm font-medium text-destructive">
-            {error ?? redirectError}
-          </p>
-        )}
+        </Field>
+        <FieldError>{error ?? googleError ?? redirectError}</FieldError>
         {completing && (
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
-            <CircleNotch className="size-4 animate-spin" /> Completing
-            sign-in…
+            <Spinner className="size-4" /> Completing sign-in…
           </p>
         )}
-        <Button type="submit" disabled={busy || completing || problems.length > 0}>
-          {busy ? <CircleNotch className="animate-spin" /> : null}
+        <Button type="submit" disabled={busy || completing || !canSubmit}>
+          {busy && <Spinner />}
           Create account
         </Button>
         <p className="text-xs text-muted-foreground">

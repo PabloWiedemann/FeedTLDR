@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from api import schemas, services
-from api.deps import AuthUser, get_current_user, _ensure_firebase
+from api.deps import AuthUser, ensure_firebase, get_current_user
 
 router = APIRouter(prefix="/v1", tags=["feed"])
 
@@ -15,7 +15,7 @@ def get_feed(user: AuthUser = Depends(get_current_user)):
 def get_demo_feed():
     """Public demo summary (the default_user document), used by the marketing
     site and the logged-out preview."""
-    _ensure_firebase()
+    ensure_firebase()
     return schemas.FeedResponse(**services.get_demo_feed())
 
 

@@ -1,13 +1,18 @@
-"""Request dependencies: Firebase ID-token auth and per-user context loading."""
+"""Request dependencies: Firebase ID-token auth and per-user context loading.
+
+Every router learns who is calling, what they are paying for, and what they can
+afford through these. Nothing reconstructs that from a request body.
+"""
 
 from dataclasses import dataclass
 
-from fastapi import Header, HTTPException
+from fastapi import Depends, Header, HTTPException
 from firebase_admin import auth as fb_auth
 
+from api.constants import DEFAULT_PLAN, FIELD_PLAN, FIELD_STRIPE_CUSTOMER_ID
 from backend import utils_firebase
 from config.plans_config import PLAN_PROPERTIES
-from utils import get_logger, get_all_purchased_prepaid_credits_stripe
+from utils import get_all_purchased_prepaid_credits_stripe, get_logger
 
 logger = get_logger("main_logger")
 
@@ -18,10 +23,44 @@ class AuthUser:
     email: str
 
 
-def _ensure_firebase() -> None:
+@dataclass
+class UserContext:
+    """A registered user: who they are and what they are subscribed to."""
+
+    uid: str
+    email: str
+    plan: str
+    stripe_customer_id: str | None
+
+
+@dataclass
+class CreditState:
+    """Credits available now, and the allowance they came from."""
+
+    monthly_left: int
+    prepaid_left: int
+    monthly_limit: int
+    prepaid_limit: int
+
+    @property
+    def total_left(self) -> int:
+        return self.monthly_left + self.prepaid_left
+
+    def as_tuple(self) -> tuple[int, int, int, int]:
+        """The positional form the frozen backend's credit helpers expect."""
+        return (
+            self.monthly_left,
+            self.prepaid_left,
+            self.monthly_limit,
+            self.prepaid_limit,
+        )
+
+
+def ensure_firebase() -> None:
+    """Surfaced as 503 so a misconfigured deployment is obvious, not a 500."""
     try:
         utils_firebase.initialize_firebase_client()
-    except Exception as e:  # surfaced as 503 so misconfig is obvious, not a 500
+    except Exception as e:
         logger.error(f"Firebase initialization failed: {e}")
         raise HTTPException(status_code=503, detail="Firebase is not configured")
 
@@ -29,36 +68,52 @@ def _ensure_firebase() -> None:
 def get_current_user(authorization: str = Header(default="")) -> AuthUser:
     """Verify the Firebase ID token from the Authorization header.
 
-    The uid/email always come from the verified token, never from the request
-    body or query string.
+    The uid and email always come from the verified token, never from the
+    request body or query string.
     """
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing bearer token")
     token = authorization.removeprefix("Bearer ").strip()
 
-    _ensure_firebase()
+    ensure_firebase()
     try:
         decoded = fb_auth.verify_id_token(token)
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-    email = decoded.get("email") or ""
-    return AuthUser(uid=decoded["uid"], email=email)
+    return AuthUser(uid=decoded["uid"], email=decoded.get("email") or "")
 
 
-def get_plan(uid: str) -> str:
-    data = utils_firebase.get_specific_user_data(uid, ["plan"])
-    plan = data.get("plan") or "free"
-    if plan not in PLAN_PROPERTIES:
+def known_plan(plan: str | None, uid: str = "") -> str:
+    """Plans are read from a document a human could have edited."""
+    if plan in PLAN_PROPERTIES:
+        return plan
+    if plan:
         logger.warning(f"Unknown plan '{plan}' for uid {uid}; treating as free")
-        plan = "free"
-    return plan
+    return DEFAULT_PLAN
 
 
-def load_credit_state(uid: str, plan: str, stripe_customer_id: str | None):
-    """Compute (monthly_left, prepaid_left, monthly_limit, prepaid_limit) using
-    the same primitives the legacy app used. Stripe failures degrade to a
-    prepaid limit of 0 instead of failing the request."""
+def get_user_context(user: AuthUser = Depends(get_current_user)) -> UserContext:
+    """Load the caller's plan and Stripe customer. 404 if they were never
+    registered, which is the one state the client must handle differently."""
+    data = utils_firebase.get_specific_user_data(
+        user.uid, [FIELD_PLAN, FIELD_STRIPE_CUSTOMER_ID]
+    )
+    if data is None:
+        raise HTTPException(status_code=404, detail="User not registered")
+    return UserContext(
+        uid=user.uid,
+        email=user.email,
+        plan=known_plan(data.get(FIELD_PLAN), user.uid),
+        stripe_customer_id=data.get(FIELD_STRIPE_CUSTOMER_ID),
+    )
+
+
+def load_credit_state(
+    uid: str, plan: str, stripe_customer_id: str | None
+) -> CreditState:
+    """Credits left, using the same primitives the legacy app used. A Stripe
+    outage degrades to "no prepaid credits" rather than failing the request."""
     monthly_limit = PLAN_PROPERTIES[plan]["limits"]["max_credits"]
     prepaid_limit = 0
     if stripe_customer_id:
@@ -68,7 +123,12 @@ def load_credit_state(uid: str, plan: str, stripe_customer_id: str | None):
             )
         except Exception as e:
             logger.warning(f"Could not load prepaid credits from Stripe: {e}")
+
     monthly_left, prepaid_left = utils_firebase.compute_credits_left(
         uid, plan, monthly_limit, prepaid_limit
     )
-    return monthly_left, prepaid_left, monthly_limit, prepaid_limit
+    return CreditState(monthly_left, prepaid_left, monthly_limit, prepaid_limit)
+
+
+def get_credit_state(user: UserContext = Depends(get_user_context)) -> CreditState:
+    return load_credit_state(user.uid, user.plan, user.stripe_customer_id)

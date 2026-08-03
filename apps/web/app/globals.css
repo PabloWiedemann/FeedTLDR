@@ -7,47 +7,60 @@
    FeedTLDR design tokens (docs/DESIGN.md §2–4).
    Warm cream canvas, ink text, white cards, lavender accent.
    Light-locked v1: a dark theme is deliberately deferred.
+
+   This file is the ONLY place a raw design value may appear.
+   Everything else consumes the tokens below; `pnpm check:tokens`
+   enforces it (docs/ENGINEERING.md §3.1).
    ============================================================ */
 :root {
-  --background: #f7f5ef;
-  --foreground: #1c1b18;
-  --card: #ffffff;
-  --card-foreground: #1c1b18;
-  --popover: #ffffff;
-  --popover-foreground: #1c1b18;
-  --primary: #1c1b18;
-  --primary-foreground: #ffffff;
-  --secondary: #f0ede4;
-  --secondary-foreground: #1c1b18;
-  --muted: #f0ede4;
-  --muted-foreground: #6e6a60;
-  --accent: #adbce6;
-  --accent-foreground: #1c1b18;
-  --destructive: #9f2f2d;
-  --destructive-foreground: #ffffff;
-  --border: #e8e5dc;
-  --input: #e8e5dc;
-  --ring: #3d6fa8;
-  --link: #3d6fa8;
+  /* colour — OKLCH, the format shadcn prescribes; sRGB hex in comments */
+  --background: oklch(0.97 0.0082 91.48); /* F7F5EF warm bone */
+  --foreground: oklch(0.2221 0.0059 91.62); /* 1C1B18 ink, never pure black */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2221 0.0059 91.62);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2221 0.0059 91.62);
+  --primary: oklch(0.2221 0.0059 91.62);
+  --primary-foreground: oklch(1 0 0);
+  --primary-hover: oklch(0.32 0.0052 106.69); /* 333330 */
+  --secondary: oklch(0.946 0.0124 91.52); /* F0EDE4 */
+  --secondary-foreground: oklch(0.2221 0.0059 91.62);
+  --muted: oklch(0.946 0.0124 91.52);
+  --muted-foreground: oklch(0.5249 0.0161 88.76); /* 6E6A60 */
+  --accent: oklch(0.798 0.062 269.57); /* ADBCE6 lavender */
+  --accent-foreground: oklch(0.2221 0.0059 91.62);
+  --destructive: oklch(0.4755 0.1483 25.66); /* 9F2F2D */
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.9218 0.0125 91.52); /* E8E5DC */
+  --input: oklch(0.9218 0.0125 91.52);
+  --ring: oklch(0.5334 0.1052 253.07); /* 3D6FA8, AA on cream */
+  --link: oklch(0.5334 0.1052 253.07);
 
   /* semantic pastels (chips/badges only, DESIGN.md §2) */
-  --pastel-green: #edf3ec;
-  --pastel-green-foreground: #346538;
-  --pastel-red: #fdebec;
-  --pastel-red-foreground: #9f2f2d;
-  --pastel-yellow: #fbf3db;
-  --pastel-yellow-foreground: #956400;
-  --pastel-blue: #e1f3fe;
-  --pastel-blue-foreground: #1f6c9f;
+  --pastel-green: oklch(0.9577 0.0112 141.26);
+  --pastel-green-foreground: oklch(0.4598 0.0894 145.67);
+  --pastel-red: oklch(0.9546 0.0196 13.63);
+  --pastel-red-foreground: oklch(0.4755 0.1483 25.66);
+  --pastel-yellow: oklch(0.9641 0.0326 91.67);
+  --pastel-yellow-foreground: oklch(0.5419 0.1141 75.42);
+  --pastel-blue: oklch(0.9541 0.0242 234.42);
+  --pastel-blue-foreground: oklch(0.5106 0.1085 242.89);
 
-  /* shape system: inputs 12px; cards use rounded-3xl; buttons rounded-full */
+  --chart-1: oklch(0.5334 0.1052 253.07);
+  --chart-2: oklch(0.798 0.062 269.57);
+  --chart-3: oklch(0.5249 0.0161 88.76);
+  --chart-4: oklch(0.5419 0.1141 75.42);
+  --chart-5: oklch(0.4598 0.0894 145.67);
+
+  /* shape system (DESIGN.md §4): inputs 12px, containers 24px, pills full */
   --radius: 0.75rem;
 
-  --chart-1: #3d6fa8;
-  --chart-2: #adbce6;
-  --chart-3: #6e6a60;
-  --chart-4: #956400;
-  --chart-5: #346538;
+  /* focus ring, one width everywhere (DESIGN.md §10) */
+  --ring-width: 3px;
+  --ring-opacity: 45%;
+
+  /* press feedback, exactly 0.96 (DESIGN.md §6) */
+  --press-scale: 0.96;
 }
 
 @theme inline {
@@ -59,6 +72,7 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -94,6 +108,69 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* ------------------------------------------------------------
+   Scale tokens: shape, elevation, motion, type, containers.
+   Named for their role so components never guess a number.
+   ------------------------------------------------------------ */
+@theme {
+  /* shape system (DESIGN.md §4) */
+  --radius-field: 0.75rem; /* inputs, textareas, kbd */
+  --radius-card: 1.5rem; /* cards, sheets, dialogs */
+
+  /* elevation: the only two shadows in the system (DESIGN.md §4) */
+  --shadow-overlay: 0 24px 64px oklch(0.2221 0.0059 91.62 / 0.1);
+  --shadow-lift: 0 2px 8px oklch(0.2221 0.0059 91.62 / 0.04);
+
+  /* motion (DESIGN.md §6) */
+  --ease-brand: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* type scale (DESIGN.md §3): size, rhythm and weight travel together */
+  --text-display-xl: clamp(3rem, 4vw + 1.5rem, 4.25rem);
+  --text-display-xl--line-height: 1.05;
+  --text-display-xl--letter-spacing: -0.02em;
+  --text-display-xl--font-weight: 600;
+
+  --text-display-lg: clamp(2.25rem, 1.5vw + 1.6rem, 3rem);
+  --text-display-lg--line-height: 1.1;
+  --text-display-lg--letter-spacing: -0.02em;
+  --text-display-lg--font-weight: 600;
+
+  --text-heading: clamp(1.875rem, 1.2vw + 1.55rem, 2.25rem);
+  --text-heading--line-height: 1.15;
+  --text-heading--letter-spacing: -0.01em;
+  --text-heading--font-weight: 600;
+
+  --text-title: 1.5rem;
+  --text-title--line-height: 1.2;
+  --text-title--font-weight: 600;
+
+  --text-section: 1.125rem;
+  --text-section--line-height: 1.3;
+  --text-section--font-weight: 600;
+
+  /* content widths (DESIGN.md §5) */
+  --container-sheet: 32.5rem; /* settings sheet */
+  --container-prose: 65ch; /* summary + legal measure */
+}
+
+/* ------------------------------------------------------------
+   Interaction utilities: one definition of "focused" and
+   "pressed" for every interactive element in the app.
+   ------------------------------------------------------------ */
+@utility focus-ring {
+  outline: none;
+  &:focus-visible {
+    box-shadow: 0 0 0 var(--ring-width)
+      color-mix(in oklab, var(--ring) var(--ring-opacity), transparent);
+  }
+}
+
+@utility press {
+  &:active {
+    scale: var(--press-scale);
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -118,7 +195,7 @@
    (headlines + paragraphs + link lists, per mock 2).
    ============================================================ */
 .summary-prose {
-  max-width: 65ch;
+  max-width: var(--container-prose);
   font-size: 1rem;
   line-height: 1.6;
 }
@@ -169,7 +246,7 @@
   text-underline-offset: 0.2em;
   text-decoration-color: color-mix(in oklab, var(--link) 40%, transparent);
   overflow-wrap: break-word;
-  transition: text-decoration-color 150ms ease-out;
+  transition: text-decoration-color 150ms var(--ease-brand);
 }
 .summary-prose a:hover {
   text-decoration-color: var(--link);
@@ -224,7 +301,7 @@
   text-underline-offset: 0.2em;
   text-decoration-color: color-mix(in oklab, var(--link) 40%, transparent);
   overflow-wrap: anywhere;
-  transition: text-decoration-color 150ms ease-out;
+  transition: text-decoration-color 150ms var(--ease-brand);
 }
 .chat-prose a:hover {
   text-decoration-color: var(--link);
@@ -236,7 +313,7 @@
   font-family: var(--font-mono);
   font-size: 0.8125em;
   background: var(--secondary);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 0.125rem 0.375rem;
 }
 .chat-prose hr {

@@ -2,17 +2,67 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowUp, CircleNotch } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowUp } from "@phosphor-icons/react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useChat, useMe, type ChatMessage } from "@/lib/hooks";
+import { Spinner } from "@/components/feedtldr/spinner";
+import { useMe } from "@/lib/api/queries";
+import { useChat } from "@/lib/api/mutations";
+import { creditsLeft } from "@/lib/credits";
+import { cn } from "@/lib/utils";
+import type { ChatMessage } from "@/lib/api/types";
 
-const EXAMPLES = [
+const EXAMPLE_QUESTIONS = [
   "What are the main topics in my feed today?",
   "Which posts got the most engagement?",
   "Any breaking news or big announcements?",
 ];
+
+function ChatBubble({ message }: { message: ChatMessage }) {
+  const fromUser = message.role === "user";
+  return (
+    <li
+      className={cn(
+        "max-w-[85%] rounded-card px-4 text-sm",
+        fromUser
+          ? "ms-auto rounded-br-lg bg-primary py-2.5 text-primary-foreground"
+          : "me-auto rounded-bl-lg border bg-card py-3"
+      )}
+    >
+      {fromUser ? (
+        message.content
+      ) : (
+        <div className="chat-prose">
+          <ReactMarkdown>{message.content}</ReactMarkdown>
+        </div>
+      )}
+    </li>
+  );
+}
+
+function ChatIntro({ onAsk }: { onAsk: (question: string) => void }) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-6 text-center">
+      <div>
+        <h1 className="text-title">Chat with your feed</h1>
+        <p className="mt-2 max-w-sm text-sm text-muted-foreground text-pretty">
+          Ask about what&rsquo;s happening in your network. The AI has your
+          latest posts and summary as context.
+        </p>
+      </div>
+      <ul className="flex flex-col gap-2">
+        {EXAMPLE_QUESTIONS.map((question) => (
+          <li key={question}>
+            <Button variant="outline" onClick={() => onAsk(question)}>
+              {question}
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 /** Chat with your feed (legacy pages/chat.py), one credit-metered turn at a time. */
 export default function ChatPage() {
@@ -22,28 +72,29 @@ export default function ChatPage() {
   const [draft, setDraft] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
 
-  function send(text: string) {
-    const content = text.trim();
-    if (!content || chat.isPending) return;
-    const next = [...messages, { role: "user", content }];
-    setMessages(next);
-    setDraft("");
-    chat.mutate(next, {
-      onSuccess: (data) => {
-        setMessages([...next, data.message]);
-        requestAnimationFrame(() => {
-          listRef.current?.scrollTo({
-            top: listRef.current.scrollHeight,
-            behavior: "smooth",
-          });
-        });
-      },
+  function scrollToLatest() {
+    requestAnimationFrame(() => {
+      listRef.current?.scrollTo({
+        top: listRef.current.scrollHeight,
+        behavior: "smooth",
+      });
     });
   }
 
-  const creditsLeft = me.data
-    ? me.data.credits.monthly_left + me.data.credits.prepaid_left
-    : null;
+  function send(text: string) {
+    const content = text.trim();
+    if (!content || chat.isPending) return;
+
+    const withQuestion: ChatMessage[] = [...messages, { role: "user", content }];
+    setMessages(withQuestion);
+    setDraft("");
+    chat.mutate(withQuestion, {
+      onSuccess: (data) => {
+        setMessages([...withQuestion, data.message]);
+        scrollToLatest();
+      },
+    });
+  }
 
   return (
     <div className="mx-auto flex h-dvh w-full max-w-3xl flex-col px-6">
@@ -54,9 +105,9 @@ export default function ChatPage() {
           </Link>
         </Button>
         <div className="flex items-center gap-3">
-          {creditsLeft !== null && (
+          {me.data && (
             <span className="text-xs tabular-nums text-muted-foreground">
-              {creditsLeft} credits left
+              {creditsLeft(me.data.credits)} credits left
             </span>
           )}
           <Button
@@ -72,51 +123,15 @@ export default function ChatPage() {
 
       <div ref={listRef} className="flex-1 overflow-y-auto pb-6">
         {messages.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center gap-6 text-center">
-            <div>
-              <h1 className="text-2xl font-semibold">Chat with your feed</h1>
-              <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-                Ask about what&rsquo;s happening in your network. The AI has
-                your latest posts and summary as context.
-              </p>
-            </div>
-            <ul className="flex flex-col gap-2">
-              {EXAMPLES.map((example) => (
-                <li key={example}>
-                  <button
-                    type="button"
-                    onClick={() => send(example)}
-                    className="rounded-full border px-4 py-2 text-sm transition-colors duration-150 outline-none hover:bg-card focus-visible:ring-[3px] focus-visible:ring-ring/45 active:scale-[0.96]"
-                  >
-                    {example}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <ChatIntro onAsk={send} />
         ) : (
           <ul className="flex flex-col gap-4">
-            {messages.map((message, i) => (
-              <li
-                key={i}
-                className={
-                  message.role === "user"
-                    ? "ms-auto max-w-[85%] rounded-3xl rounded-br-lg bg-primary px-4 py-2.5 text-sm text-primary-foreground"
-                    : "me-auto max-w-[85%] rounded-3xl rounded-bl-lg border bg-card px-4 py-3 text-sm"
-                }
-              >
-                {message.role === "assistant" ? (
-                  <div className="chat-prose">
-                    <ReactMarkdown>{message.content}</ReactMarkdown>
-                  </div>
-                ) : (
-                  message.content
-                )}
-              </li>
+            {messages.map((message, index) => (
+              <ChatBubble key={index} message={message} />
             ))}
             {chat.isPending && (
-              <li className="me-auto flex items-center gap-2 rounded-3xl border bg-card px-4 py-2.5 text-sm text-muted-foreground">
-                <CircleNotch className="size-4 animate-spin" /> Thinking…
+              <li className="me-auto flex items-center gap-2 rounded-card border bg-card px-4 py-2.5 text-sm text-muted-foreground">
+                <Spinner className="size-4" /> Thinking…
               </li>
             )}
           </ul>
@@ -125,14 +140,14 @@ export default function ChatPage() {
 
       <form
         className="flex items-center gap-2 pb-6"
-        onSubmit={(e) => {
-          e.preventDefault();
+        onSubmit={(event) => {
+          event.preventDefault();
           send(draft);
         }}
       >
         <Input
           value={draft}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(event) => setDraft(event.target.value)}
           placeholder="Ask about your feed…"
           aria-label="Chat message"
           className="bg-card"

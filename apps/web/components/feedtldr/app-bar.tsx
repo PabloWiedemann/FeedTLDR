@@ -56,7 +56,7 @@ export function AppBar({
         <DropdownMenu>
           <DropdownMenuTrigger
             aria-label="Account menu"
-            className="rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45"
+            className="rounded-full focus-ring"
           >
             <Avatar className="size-10 bg-accent">
               <AvatarFallback className="bg-accent text-sm font-medium text-accent-foreground">
