@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/feedtldr/logo";
 import { TagInput } from "@/components/feedtldr/tag-input";
 import { useAuth } from "@/components/providers";
+import { logout } from "@/lib/firebase";
 import {
   useAccounts,
   useAddAccounts,
@@ -84,7 +85,24 @@ export default function OnboardingPage() {
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-xl flex-col items-center gap-10 px-6 py-16">
-      <Logo />
+      <div className="flex flex-col items-center gap-2">
+        <Logo />
+        {user?.email && (
+          <p className="text-xs text-muted-foreground">
+            Signed in as {user.email} ·{" "}
+            <button
+              type="button"
+              className="underline underline-offset-2 transition-colors hover:text-foreground"
+              onClick={async () => {
+                await logout();
+                router.replace("/login");
+              }}
+            >
+              Not you? Sign out
+            </button>
+          </p>
+        )}
+      </div>
 
       <ol className="flex items-center gap-3" aria-label="Onboarding progress">
         {STEPS.map((label, i) => (
