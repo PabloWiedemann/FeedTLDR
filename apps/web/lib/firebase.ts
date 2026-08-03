@@ -1,8 +1,13 @@
 import { getApps, initializeApp } from "firebase/app";
 import {
   GoogleAuthProvider,
+  browserLocalPersistence,
+  browserPopupRedirectResolver,
   createUserWithEmailAndPassword,
   getAuth,
+  inMemoryPersistence,
+  indexedDBLocalPersistence,
+  initializeAuth,
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
@@ -21,7 +26,20 @@ const firebaseConfig = {
 
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
+// In the browser, declare a persistence fallback chain so restricted storage
+// environments (private windows, in-app browsers) degrade to in-memory auth
+// instead of failing with IndexedDB errors mid sign-in.
+export const auth =
+  typeof window === "undefined"
+    ? getAuth(app)
+    : initializeAuth(app, {
+        persistence: [
+          indexedDBLocalPersistence,
+          browserLocalPersistence,
+          inMemoryPersistence,
+        ],
+        popupRedirectResolver: browserPopupRedirectResolver,
+      });
 export const googleProvider = new GoogleAuthProvider();
 
 export async function getIdToken(): Promise<string | null> {
@@ -71,7 +89,10 @@ export function googleErrorMessage(err: unknown): string {
     return "Network problem while talking to Google. Check the connection and try again.";
   if (code.includes("account-exists-with-different-credential"))
     return "This email already has an account with a password. Log in with email and password instead.";
-  return `Google sign-in failed (${code || String(err).slice(0, 120)}).`;
+  const text = String(err);
+  if (/database|indexeddb|closing|invalidstate/i.test(text))
+    return "Your browser is blocking sign-in storage. Open this site directly in Safari or Chrome (not a private window, and not the built-in browser inside a chat app) and try again.";
+  return `Google sign-in failed (${code || text.slice(0, 120)}).`;
 }
 
 export type { User };
