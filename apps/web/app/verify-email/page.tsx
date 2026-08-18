@@ -11,6 +11,7 @@ import { Notice } from "@/components/feedtldr/notice";
 import { Spinner } from "@/components/feedtldr/spinner";
 import { Turnstile } from "@/components/feedtldr/turnstile";
 import { useAuth } from "@/components/providers";
+import { track } from "@/lib/analytics";
 import { refreshCurrentUser, sendVerification } from "@/lib/firebase";
 import {
   clearPendingSignup,
@@ -78,6 +79,7 @@ export default function VerifyEmailPage() {
 
       const result = await registerAccount(pending);
       clearPendingSignup();
+      if (!result.already_registered) track("signup_completed");
       router.replace(result.already_registered ? "/app" : "/onboarding");
     } catch (err) {
       const text = String(err).replace(/^Error:\s*/, "");

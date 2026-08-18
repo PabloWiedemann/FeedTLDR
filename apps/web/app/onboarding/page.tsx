@@ -14,6 +14,7 @@ import { Logo } from "@/components/feedtldr/logo";
 import { OnboardingSteps } from "@/components/feedtldr/onboarding-steps";
 import { Spinner } from "@/components/feedtldr/spinner";
 import { useAuth } from "@/components/providers";
+import { track } from "@/lib/analytics";
 import { logout } from "@/lib/firebase";
 import { useAccounts, useMe, useSettings } from "@/lib/api/queries";
 import { useUpdateMe, useUpdateSettings } from "@/lib/api/mutations";
@@ -111,7 +112,12 @@ export default function OnboardingPage() {
     }
     updateMe.mutate(
       { onboarded: true, onboarding_step: LAST_STEP },
-      { onSuccess: () => router.replace("/app") }
+      {
+        onSuccess: () => {
+          track("onboarding_completed");
+          router.replace("/app");
+        },
+      }
     );
   }
 

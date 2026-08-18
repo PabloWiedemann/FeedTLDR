@@ -1,13 +1,11 @@
-import Link from "next/link";
 import {
-  ArrowRight,
   ChatCircleDots,
   EnvelopeSimple,
   SpeakerHigh,
 } from "@phosphor-icons/react/dist/ssr";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LANDING_COPY, SAMPLE_BRIEF } from "./copy";
+import { CtaLink } from "./cta-link";
 import { SummaryPreview } from "./summary-preview";
 
 /* bento hover: a soft settle upward with the shadow deepening in
@@ -73,12 +71,7 @@ function HeroBento() {
           {LANDING_COPY.subhead}
         </p>
         <div className="mt-2 flex flex-col items-center gap-3">
-          <Button asChild size="lg" className="group hover:-translate-y-0.5">
-            <Link href="/signup">
-              {LANDING_COPY.cta}
-              <ArrowRight className="transition-transform duration-200 ease-brand group-hover:translate-x-0.5" />
-            </Link>
-          </Button>
+          <CtaLink location="hero">{LANDING_COPY.cta}</CtaLink>
           <p className="text-sm text-muted-foreground">
             {LANDING_COPY.ctaNote}
           </p>
@@ -121,12 +114,7 @@ function ClosingCta() {
       <h2 className="max-w-2xl font-display text-heading">
         {LANDING_COPY.closing.headline}
       </h2>
-      <Button asChild size="lg" className="group hover:-translate-y-0.5">
-        <Link href="/signup">
-          {LANDING_COPY.closing.cta}
-          <ArrowRight className="transition-transform duration-200 ease-brand group-hover:translate-x-0.5" />
-        </Link>
-      </Button>
+      <CtaLink location="closing">{LANDING_COPY.closing.cta}</CtaLink>
     </section>
   );
 }

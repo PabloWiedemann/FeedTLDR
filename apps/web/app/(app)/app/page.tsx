@@ -22,6 +22,7 @@ import {
 import { SettingsSheet } from "@/components/feedtldr/settings-sheet";
 import { SourceDataView } from "@/components/feedtldr/source-data";
 import { SummaryProse } from "@/components/feedtldr/summary-prose";
+import { track } from "@/lib/analytics";
 import {
   useFeed,
   useGenerationStatus,
@@ -107,8 +108,14 @@ function useGenerationCompletion(status: string | undefined, error?: string | nu
       for (const queryKey of generationResultKeys) {
         void queryClient.invalidateQueries({ queryKey });
       }
-      if (status === "success") toast.success("Your new summary is ready");
-      if (status === "error") toast.error(error ?? "Generation failed");
+      if (status === "success") {
+        toast.success("Your new summary is ready");
+        track("generation_completed");
+      }
+      if (status === "error") {
+        toast.error(error ?? "Generation failed");
+        track("generation_failed");
+      }
     }
     previousStatus.current = status;
   }, [status, error, queryClient]);

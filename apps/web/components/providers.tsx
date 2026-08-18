@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import { Toaster } from "@/components/ui/sonner";
+import { identifyUser, resetAnalytics } from "@/lib/analytics";
 import { watchAuth, type User } from "@/lib/firebase";
 
 // ---------- auth ----------
@@ -49,6 +50,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
       const uid = u?.uid ?? null;
       if (prevUid.current !== undefined && prevUid.current !== uid) {
         queryClient.clear();
+      }
+      if (u) {
+        identifyUser(u.uid, { email: u.email, name: u.displayName });
+      } else if (prevUid.current) {
+        // Only on a real sign-out; resetting an anonymous visitor would
+        // mint a fresh ID on every page load and break attribution.
+        resetAnalytics();
       }
       prevUid.current = uid;
       setUser(u);
