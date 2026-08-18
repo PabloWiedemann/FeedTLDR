@@ -6,17 +6,21 @@ import { cn } from "@/lib/utils"
 
 // FeedTLDR shape system: every button is a pill (DESIGN.md §4).
 const buttonVariants = cva(
-  "focus-ring press inline-flex shrink-0 items-center justify-center gap-2 rounded-full text-sm font-medium whitespace-nowrap transition-[background-color,border-color,color,scale] duration-150 ease-brand disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "focus-ring press inline-flex shrink-0 items-center justify-center gap-2 rounded-full text-sm font-medium whitespace-nowrap transition-[background-color,border-color,color,scale,translate] duration-150 ease-brand disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary-hover",
+        default:
+          "border border-btn-border bg-primary text-primary-foreground hover:bg-primary-hover",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "border border-foreground/25 bg-transparent text-foreground hover:border-foreground/60 hover:bg-card",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-border",
-        ghost: "text-foreground hover:bg-secondary",
+          "border border-foreground/25 bg-transparent text-foreground hover:border-foreground/60 hover:bg-accent",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-accent",
+        // soft accent wash with a thin ink border; fills on hover
+        tonal:
+          "border border-foreground/25 bg-accent text-foreground hover:border-btn-border hover:bg-primary",
+        ghost: "text-foreground hover:bg-accent",
         link: "text-link underline-offset-4 hover:underline active:scale-100",
       },
       size: {

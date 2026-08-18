@@ -2,7 +2,7 @@
 
 The single source of truth for how the new frontend looks, moves, and reads. Every UI task starts by reading this file. The visual direction is locked from the existing brand mocks (cream landing page, "Today's Feed" summary, left settings sheet), not invented per-task.
 
-**Design read:** consumer SaaS (product app + marketing site) for a personal AI newsletter tool, warm editorial-minimal language locked from existing brand mocks, built on Next.js + Tailwind v4 + shadcn/ui with Poppins and a cream/ink palette.
+**Design read:** consumer SaaS (product app + marketing site) for a personal AI newsletter tool, warm editorial-minimal language, built on Next.js + Tailwind v4 + shadcn/ui. Poppins body + Archivo Black display, bone canvas with a mint/forest green accent pair (2026 redesign, replacing the launch-era cream/lavender look).
 
 **Dials** (design-taste-frontend): `DESIGN_VARIANCE: 6` (marketing) / `4` (app surfaces) · `MOTION_INTENSITY: 4` · `VISUAL_DENSITY: 3`.
 
@@ -17,37 +17,40 @@ Deliberate overrides of skill defaults, justified by the existing brand:
 ## 1. Brand foundations
 
 - **Voice:** plain, calm, specific. "Stay informed without the overwhelm." No AI cliches (elevate, seamless, unleash, next-gen). Sentence case everywhere including buttons ("Try now", "Re-generate", "Play summary"). No emojis in UI. No em-dashes anywhere in UI copy; use periods or commas.
-- **Illustration:** monochrome hand-drawn line art (the bear mascot sipping a feed-cube drink, sparkles). Assets live in `apps/web/public/brand/`. Port `feed_logo.png` + `landing_image_mascot.png` from the old repo; re-export as SVG where possible. Sparkle glyphs are decorative SVG accents used sparingly (max 2–3 per page, marketing pages only).
-- **Logo:** bubble wordmark "Feed." + plain-text "TLDR" suffix. Never restyle the wordmark; scale it as a unit.
+- **Illustration:** monochrome hand-drawn line art (the bear mascot sipping a feed-cube drink, sparkles). Assets live in `apps/web/public/brand/`. The mascot appears only in app empty states now, not on the landing page. Sparkle glyphs are decorative SVG accents used sparingly (max 2–3 per page, marketing pages only).
+- **Logo:** bubble wordmark "Feed." + plain-text "TLDR" suffix, rendered as an inline SVG (`components/feedtldr/logo.tsx`) whose fill is the `--logo` token (the ink color — the mark is never green). Never restyle the wordmark; scale it as a unit.
 
 ## 2. Color tokens
 
-Warm monochrome + ink, with white cards on cream. Color is scarce: the accent pastels appear only in small semantic touches (chips, avatar, focus tints), never as section backgrounds.
+Warm bone canvas, white cards, near-black ink, and one green accent family used the Wise way: a **bright/deep pair**. Bright mint fills the primary action (with ink text; hover goes *more* vivid), deep forest carries links, focus rings, and small accents, and a soft green tint is the single hover/selection wash. Everything else stays neutral.
 
-| Token | Hex | OKLCH | Use |
-| --- | --- | --- | --- |
-| `--background` | `#F7F5EF` | `oklch(0.97 0.009 95)` | Page canvas (warm bone) |
-| `--card` | `#FFFFFF` | `oklch(1 0 0)` | Cards, sheet panels, inputs on cream |
-| `--foreground` | `#1C1B18` | `oklch(0.22 0.004 95)` | Headings, primary text (never #000) |
-| `--muted-foreground` | `#6E6A60` | `oklch(0.52 0.014 95)` | Secondary text, timestamps, helper text |
-| `--border` | `#E8E5DC` | `oklch(0.92 0.009 95)` | Hairlines, card borders, dividers |
-| `--primary` | `#1C1B18` | — | Filled pill buttons (ink on cream) |
-| `--primary-foreground` | `#FFFFFF` | — | Text on primary |
-| `--accent` | `#ADBCE6` | `oklch(0.79 0.055 270)` | Avatar bg, selected states, small highlights |
-| `--link` | `#3D6FA8` | `oklch(0.53 0.09 255)` | Links. The mock's lighter blue (`#5B9BD5`) fails 4.5:1 on cream; this keeps the hue at AA. Hover may lighten toward the mock blue. |
-| `--destructive` | `#9F2F2D` | — | Destructive actions, error text |
+| Token | OKLCH | Use |
+| --- | --- | --- |
+| `--background` | `oklch(0.97 0.0082 91.48)` | Page canvas (warm bone, `#F7F5EF`) |
+| `--card` | `oklch(1 0 0)` | Cards, sheet panels, inputs — summaries always read on pure white |
+| `--foreground` | `color-mix(22% link, oklch(0.155 0.004 91.62))` | Ink: near-black cast toward the forest hue (never `#000`, never pure grey) |
+| `--muted-foreground` | `oklch(0.52 0.012 140)` | Secondary text, timestamps, helper text |
+| `--secondary` / `--muted` | `oklch(0.951 0.006 145)` | Washes: neutral grey with a whisper of green (link pills, icon chips) |
+| `--border` / `--input` | `oklch(0.924 0.007 140)` | Hairlines, dividers, input borders |
+| `--primary` | `oklch(0.86 0.13 158)` | Bright mint: filled pill buttons, ink text on top |
+| `--primary-foreground` | `var(--foreground)` | Ink text on the mint fill |
+| `--primary-hover` | `oklch(0.82 0.15 156)` | Hover goes more vivid, never grey |
+| `--btn-border` | `color-mix(45% accent-foreground, primary)` | Darker-green outline on filled buttons |
+| `--accent` | `oklch(0.935 0.04 158)` | THE hover wash + `::selection` + icon-chip fill |
+| `--accent-foreground` / `--link` / `--ring` | `oklch(0.33 0.06 155)` | Deep forest: links, focus rings, accent icons |
+| `--logo` | `var(--foreground)` | Brand mark tint — always ink, never green |
+| `--destructive` | `oklch(0.4755 0.1483 25.66)` | Destructive actions, error text (`#9F2F2D`) |
 
-Semantic pastels (chips/badges only, per minimalist-ui): pale green `#EDF3EC`/text `#346538` (verified), pale red `#FDEBEC`/text `#9F2F2D` (failed/not found), pale yellow `#FBF3DB`/text `#956400` (pending/unverified), pale blue `#E1F3FE`/text `#1F6C9F` (info).
+Semantic pastels (chips/badges only, per minimalist-ui): pale green (verified), pale red (failed/not found), pale yellow (pending/unverified), pale blue (info) — values unchanged in `globals.css`.
 
-`--primary-hover` (`#333330`) is the one hover shade for filled ink buttons.
-
-Rules: one accent family per page (Color Consistency Lock). No gradients, no colored section backgrounds, no glow shadows. Backgrounds may carry a barely-there radial warmth (`radial-gradient`, opacity ≤ 0.03) on marketing pages only.
+Rules: one accent family per page (Color Consistency Lock) — green is that family. A deep-forest icon or glyph never sits bare on a card; it gets a soft chip behind it (`bg-secondary` neutral by default, `bg-accent` when highlighted) or it renders in ink. Hover washes are always `--accent`, never ad-hoc greys. No gradients, no colored section backgrounds, no glow shadows.
 
 Implementation: declared once in `:root` in **OKLCH** (the format shadcn prescribes), then mapped to the shadcn/ui semantic names via Tailwind v4 `@theme inline`. Components use the generated utilities (`bg-pastel-green`), never the raw variable. Never hard-code a colour in a component — `pnpm check:tokens` fails the build if you do (docs/ENGINEERING.md §3.1).
 
 ## 3. Typography
 
-- **Family:** Poppins (matches the mocks' geometric sans) via `next/font/google`, weights 400/500/600. Fallback: `system-ui, "Segoe UI", sans-serif`. Mono (kbd, code, metadata): `Geist Mono` or `JetBrains Mono`. No serif anywhere.
+- **Body family:** Poppins via `next/font/google`, weights 400/500/600. Fallback: `system-ui, "Segoe UI", sans-serif`. Mono (kbd, code, metadata): `JetBrains Mono`. No serif anywhere.
+- **Display family:** Archivo Black (`font-display` utility) for marketing headlines only. It ships a single 400 weight; a global `.font-display { font-weight: 400 }` rule pins it so the display tokens' 600 never synthesizes a fake bolder face. App headings stay Poppins (no `font-display` class).
 - **Root:** `antialiased` on the root layout. `text-wrap: balance` on headings, `text-wrap: pretty` on descriptions.
 
 Size, line-height, tracking and weight travel together as one token, so a heading is never assembled from three utilities. The scale is fluid: `clamp()` replaces `sm:`/`lg:` size jumps.
@@ -74,19 +77,22 @@ Rules: summary prose capped at `max-w-prose` (65ch, `--container-prose`). Timest
 - Inputs, textareas, popovers, kbd: `rounded-field` (12px, `--radius-field`)
 - Nested surfaces follow concentric radius: outer = inner + padding
 
-**Borders & elevation:** flat by default. Cards are `bg-card` with `border border-border` (1px) and no shadow, sitting on the cream canvas. Elevation is two tokens and nothing else:
+**Borders & elevation:** app cards are `bg-card` with `border border-border` (1px) and no shadow. Marketing/bento cards are borderless and float on `shadow-card` instead. Elevation is four tokens and nothing else:
 
 - `shadow-overlay` — sheet, dialog, dropdown, select, tooltip
-- `shadow-lift` — hover-lift on interactive cards, active tab pill
+- `shadow-lift` — subtle hover-lift accents, active tab pill
+- `shadow-card` — resting elevation for borderless bento/product cards (ink-tinted via `color-mix` on `--foreground`)
+- `shadow-card-hover` — the lifted state of `shadow-card`; same two-layer structure so the transition interpolates cleanly
 
 Tailwind's default `shadow-xs/sm/md/lg/xl` are banned and fail `pnpm check:tokens`. Dividers inside content (feed sections) are 1px `--border` hairlines; between unrelated groups prefer whitespace over lines (gap between groups ≥ 2× gap within).
 
 ## 5. Spacing & layout
 
 - Spacing scale: Tailwind default (4px base). Section rhythm on marketing pages: `py-24`–`py-32`. App pages: `py-10`–`py-16`.
-- Content containers: marketing `max-w-6xl`, app content column `max-w-3xl` (the mock's summary is a single centered column), settings sheet `max-w-sheet` (520px, `--container-sheet`), prose `max-w-prose`.
+- Content containers: marketing `max-w-5xl` (nav, main, footer share the one column), app content column `max-w-3xl`, settings sheet `max-w-sheet` (520px, `--container-sheet`), prose `max-w-prose`.
+- Marketing header: sticky glass bar — `bg-background/70` + `backdrop-blur-md backdrop-saturate-150` + `border-b border-border/70` hairline; content scrolls beneath it.
 - Layout margins: ≥16px inline on mobile; controls never touch viewport edges; media may bleed.
-- Alignment: left-aligned headers and content (the mocks are left-aligned; avoid centered hero stacks). Landing hero is a split layout: text left, mascot right, collapsing to single column under `md`.
+- Alignment: app pages left-aligned. Landing hero is a centered stack (headline, subhead, CTA) over a bento grid: the summary preview card spans two thirds, three feature tiles stack beside it, collapsing to single column under `lg`.
 - Progressive disclosure: anything scrollable shows a peeking next item (16–32px) or a disclosure control.
 - Logical properties (`ps-*`, `me-*`) over physical left/right.
 
@@ -95,7 +101,8 @@ Tailwind's default `shadow-xs/sm/md/lg/xl` are banned and fail `pnpm check:token
 Quiet and functional. Easing is one token, `ease-brand` (`cubic-bezier(0.16, 1, 0.3, 1)`); durations 150–300ms (600ms only for scroll-entry on marketing pages).
 
 - Press: the `press` utility on buttons/chips/toggles (`--press-scale`, exactly 0.96). Never hand-write the scale.
-- Hover: color/opacity shifts ≤200ms; interactive cards may lift per §4.
+- Hover: color/opacity shifts ≤200ms. Bento cards settle upward 4px while their shadow deepens (`transition-[translate,box-shadow]`, 300ms, `ease-brand`, `shadow-card → shadow-card-hover`) — one interruptible transition, specific properties only, never `transition: all`.
+- CTA buttons carry a trailing arrow that nudges 2px right on hover (`group-hover:translate-x-0.5`), and the button itself lifts half a step.
 - Enter/exit: sheet slides from left 300ms; dialog fade+scale from 0.98; exits softer than enters, small fixed `translateY`, `ease-out`.
 - Staggered reveals: marketing sections and feed sections fade in `translateY(12px)`, 80ms stagger, `IntersectionObserver` or Motion `whileInView`, `viewport={{ once: true }}`.
 - Icon state changes cross-fade (opacity 0→1, scale 0.25→1, blur 4px→0), spring `duration 0.3, bounce 0`.
@@ -112,9 +119,10 @@ Base primitives via `npx shadcn@latest add`, then restyled through tokens (never
 
 | Component | Base | Notes |
 | --- | --- | --- |
-| `Button` | shadcn button + CVA | Variants: `primary` (ink pill), `outline` (1px border pill), `ghost`, `icon` (circular). Sizes sm/md/lg. Press scale 0.96 |
+| `Button` | shadcn button + CVA | Variants: `default` (mint fill, ink text, `--btn-border` outline), `tonal` (accent wash + thin ink border, fills mint on hover), `outline`, `secondary`, `ghost`, `destructive`, `link`, icon sizes. Hover washes use `--accent`. Press scale 0.96 |
 | `AppBar` | custom | App pages: settings icon-button left; Re-generate primary + Avatar right (mock 2) |
-| `MarketingNav` | custom | Logo left; Pricing + "Go to summary" outline pill right; ≤72px tall, one line |
+| `MarketingNav` | custom | Sticky glass bar (§5). Logo left; Pricing + auth-aware `NavAuthButton` right ("Your brief" when signed in, "Log in" otherwise, both `tonal`); ≤72px tall |
+| `SummaryPreview` | custom (landing) | Hero product card: dated brief with decorative Play pill and `SummaryProse` sample, borderless on `shadow-card` |
 | `Footer` | custom | Copyright + legal links |
 | `Card` | shadcn card | 24px radius, border, no shadow |
 | `Sheet` | shadcn sheet | Settings panel, `side="left"`, white on cream, overlay scrim `rgba(28,27,24,0.45)` |
@@ -135,7 +143,7 @@ Base primitives via `npx shadcn@latest add`, then restyled through tokens (never
 | `AudioPill` | custom | "Play summary" outline pill wrapping `<audio>`: play/pause, progress, time `tabular-nums` |
 | `GenerationProgress` | custom | Stage list (collect → summarize → audio → email) driven by `pipeline_status` polling; skeleton-first |
 | `CreditBadge` | custom | Cost + remaining credits, `tabular-nums` |
-| `Avatar` | shadcn avatar | Initials on `--accent` lavender |
+| `Avatar` | shadcn avatar | Initials on the `--accent` green tint |
 | `Tabs` | shadcn tabs | Summary / Source data |
 | `DataTable` | TanStack Table + shadcn | Source-data explorer: sort, search |
 | `StatCard` | custom | Posts/likes/views metrics |
@@ -153,7 +161,7 @@ Every component ships with: hover, focus-visible, active, disabled, loading, and
 
 ## 9. Page specs
 
-- **Landing `/`** — MarketingNav; split hero (display-xl left, mascot right); "Try now" primary pill + supporting blurb (≤20 words); below the fold: 2–3 sections (how it works, sample summary teaser from demo data, email capture CTA); footer. Max 4 text elements in hero. Distinct layout families per section; no three-equal-card rows.
+- **Landing `/`** — sticky glass MarketingNav; centered hero (display-xl in `font-display`, ≤2 lines on desktop, subhead ≤25 words, "Get your first brief" primary pill + "Free to start" note); bento grid (SummaryPreview two-thirds + inbox/chat/listen tiles with neutral icon chips); below the fold only a slim 3-step strip and a closing CTA; footer. Source links inside summary prose render as icon pills (`.summary-prose` styles).
 - **Feed `/app`** — AppBar; "Today's Feed" display-lg; "Generated on …" muted with user-timezone formatting; AudioPill; hairline-separated FeedSections; Tabs to Source data (StatCards + Charts + DataTable). States: demo (no generations yet: banner + demo summary), generating (GenerationProgress replaces stale summary CTA area), error (inline with retry), empty-scrape (explain + link to settings).
 - **Settings sheet** (over `/app`) — three white cards per mock 3: Accounts (TagInput + verify + import-followees popover), Newsletter email (EmailChipList + subscribe), AI prompt (ThemePicker + textarea); timezone select; Re-generate primary at bottom. Inline validation below fields; plan-limit notices with upgrade link.
 - **Generate dialog** — fetch-latest toggle vs re-summarize, theme/prompt, CreditBadge cost preview, Generate primary; disabled states explain why (no accounts / none verified / insufficient credits).

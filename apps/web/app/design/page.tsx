@@ -132,6 +132,7 @@ export default function DesignGallery() {
       <Section title="Buttons">
         <div className="flex flex-wrap items-center gap-3">
           <Button>Primary</Button>
+          <Button variant="tonal">Tonal</Button>
           <Button variant="outline">Outline</Button>
           <Button variant="secondary">Secondary</Button>
           <Button variant="ghost">Ghost</Button>
