@@ -1,7 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ArrowsClockwise, Faders, SignOut, User } from "@phosphor-icons/react";
+import {
+  ArrowsClockwise,
+  CreditCard,
+  Faders,
+  SignOut,
+  User,
+} from "@phosphor-icons/react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { logout } from "@/lib/firebase";
+import { accountPlanLabel } from "@/lib/plans";
 
 /**
  * App header (mock 2): settings icon-button left; Re-generate + avatar right.
@@ -20,12 +27,14 @@ import { logout } from "@/lib/firebase";
 export function AppBar({
   email,
   name,
+  plan,
   onOpenSettings,
   onRegenerate,
   regenerateDisabled,
 }: {
   email: string;
   name?: string;
+  plan?: string;
   onOpenSettings: () => void;
   onRegenerate: () => void;
   regenerateDisabled?: boolean;
@@ -65,15 +74,20 @@ export function AppBar({
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-52">
-            <DropdownMenuLabel className="truncate">
-              {name || email}
+            <DropdownMenuLabel className="flex min-w-0 flex-col gap-1">
+              <span className="truncate">{name || email}</span>
+              {plan && (
+                <span className="text-xs font-normal text-muted-foreground">
+                  {accountPlanLabel(plan)}
+                </span>
+              )}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => router.push("/profile")}>
               <User /> Profile
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => router.push("/pricing")}>
-              Plan &amp; credits
+              <CreditCard /> Plan &amp; credits
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem

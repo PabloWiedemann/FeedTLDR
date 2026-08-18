@@ -49,6 +49,7 @@ import { Logo } from "@/components/feedtldr/logo";
 import { Notice } from "@/components/feedtldr/notice";
 import { OnboardingSteps } from "@/components/feedtldr/onboarding-steps";
 import { PageHeader } from "@/components/feedtldr/page-header";
+import { PlanCard } from "@/components/feedtldr/plan-card";
 import { SourceDataTable } from "@/components/feedtldr/source-data-table";
 import { Spinner } from "@/components/feedtldr/spinner";
 import { StatCard } from "@/components/feedtldr/stat-card";
@@ -91,6 +92,28 @@ const SAMPLE_ROWS = [
     viewCount: 20488,
   },
 ];
+
+const SAMPLE_BASIC_PLAN = {
+  id: "basic",
+  max_credits: 50,
+  max_followers: 200,
+  max_tweets_per_generation: 250,
+  price_id_month: "price_basic_month",
+  price_id_year: "price_basic_year",
+  price_month: 4.99,
+  price_year: 49.99,
+};
+
+const SAMPLE_PRO_PLAN = {
+  id: "pro",
+  max_credits: 100,
+  max_followers: 500,
+  max_tweets_per_generation: 700,
+  price_id_month: "price_pro_month",
+  price_id_year: "price_pro_year",
+  price_month: 11.99,
+  price_year: 119.99,
+};
 
 function Section({
   title,
@@ -320,8 +343,32 @@ export default function DesignGallery() {
           <AppBar
             email="pablo@example.com"
             name="Pablo"
+            plan="pro"
             onOpenSettings={() => toast.info("Settings would open")}
             onRegenerate={() => toast.success("Re-generate pressed")}
+          />
+        </div>
+      </Section>
+
+      <Section title="Plan cards">
+        <div className="grid gap-6 sm:grid-cols-2">
+          <PlanCard
+            plan={SAMPLE_BASIC_PLAN}
+            interval="month"
+            isSignedIn
+            isCurrent={false}
+            availableCredits={77}
+            isBusy={false}
+            onAction={() => toast.info("Plan action")}
+          />
+          <PlanCard
+            plan={SAMPLE_PRO_PLAN}
+            interval="month"
+            isSignedIn
+            isCurrent
+            availableCredits={77}
+            isBusy={false}
+            onAction={() => toast.info("Plan action")}
           />
         </div>
       </Section>

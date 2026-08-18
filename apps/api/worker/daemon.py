@@ -45,6 +45,10 @@ TARGET_HOUR = 7  # 7 AM
 # MINIMUM TIME BETWEEN NEWSLETTER GENERATIONS
 MIN_TIME_BETWEEN_GENERATIONS = 12  # hours
 
+# A transient Firestore/Stripe failure must not permanently kill the only
+# scheduler thread while the API continues to report healthy.
+WORKER_ERROR_RETRY_SECONDS = 60
+
 
 def get_users_for_current_hour(users, target_hour=TARGET_HOUR):
     """Returns list of users whose target hour matches the current hour in their timezone."""
@@ -67,12 +71,7 @@ def get_users_for_current_hour(users, target_hour=TARGET_HOUR):
                 continue
 
         # get user timezone
-        user_tz_city = user.get("timezone", "America/New_York")
-        if user_tz_city is None:
-            logger_user_checker.warning(
-                f"No timezone found for user {user_id}. Setting it to America/New_York"
-            )
-            user_tz = "America/New_York"
+        user_tz_city = user["timezone"]
         user_tz = pytz.timezone(user_tz_city)
 
         # get current time in user's timezone
@@ -92,16 +91,24 @@ def get_users_for_current_hour(users, target_hour=TARGET_HOUR):
 
             # skip if newsletter was generated in the last 24 hours
             if newsletter_last_generation_time is not None:
-                generation_time = datetime.strptime(
-                    newsletter_last_generation_time, "%Y-%m-%d %H:%M:%S %Z(%z)"
-                ).astimezone(user_tz)
-                if datetime.now(user_tz) - generation_time < timedelta(
-                    hours=MIN_TIME_BETWEEN_GENERATIONS
-                ):
-                    logger_user_checker.info(
-                        f"Skipping user id {user_id} with email {email} because newsletter was generated in the last {MIN_TIME_BETWEEN_GENERATIONS} hours..."
+                try:
+                    generation_time = datetime.strptime(
+                        newsletter_last_generation_time,
+                        "%Y-%m-%d %H:%M:%S %Z(%z)",
+                    ).astimezone(user_tz)
+                except (TypeError, ValueError):
+                    logger_user_checker.warning(
+                        f"Ignoring malformed newsletter generation time for "
+                        f"user {user_id}: {newsletter_last_generation_time!r}"
                     )
-                    continue
+                else:
+                    if datetime.now(user_tz) - generation_time < timedelta(
+                        hours=MIN_TIME_BETWEEN_GENERATIONS
+                    ):
+                        logger_user_checker.info(
+                            f"Skipping user id {user_id} with email {email} because newsletter was generated in the last {MIN_TIME_BETWEEN_GENERATIONS} hours..."
+                        )
+                        continue
 
             # skip weekends
             if user_current_time.weekday() >= 5:
@@ -134,27 +141,32 @@ def get_users_for_current_hour(users, target_hour=TARGET_HOUR):
 def check_and_add_users():
     """Thread function to check for users and add them to queue."""
     while True:
-        users = get_all_users_timezones()
-        users_for_current_hour = get_users_for_current_hour(users, TARGET_HOUR)
+        try:
+            users = get_all_users_timezones()
+            users_for_current_hour = get_users_for_current_hour(users, TARGET_HOUR)
 
-        if len(users_for_current_hour) > 0:
-            logger_user_checker.info(
-                f"Adding {len(users_for_current_hour)} users to queue"
-            )
-            with queue_lock:
-                for user in users_for_current_hour:
-                    users_queue.put(user)
-                    users_in_queue.add(user["uid"])
-        else:
-            # Sleep until next hour
-            next_hour = (datetime.now() + timedelta(hours=1)).replace(
-                minute=0, second=0, microsecond=0
-            )
-            sleep_seconds = (next_hour - datetime.now()).total_seconds()
-            logger_user_checker.info(
-                f"No users to process at current hour. Sleeping for {sleep_seconds} seconds..."
-            )
-            time.sleep(sleep_seconds)
+            if len(users_for_current_hour) > 0:
+                logger_user_checker.info(
+                    f"Adding {len(users_for_current_hour)} users to queue"
+                )
+                with queue_lock:
+                    for user in users_for_current_hour:
+                        users_queue.put(user)
+                        users_in_queue.add(user["uid"])
+            else:
+                # Sleep until next hour
+                next_hour = (datetime.now() + timedelta(hours=1)).replace(
+                    minute=0, second=0, microsecond=0
+                )
+                sleep_seconds = (next_hour - datetime.now()).total_seconds()
+                logger_user_checker.info(
+                    f"No users to process at current hour. Sleeping for {sleep_seconds} seconds..."
+                )
+                time.sleep(sleep_seconds)
+        except Exception as e:
+            logger_user_checker.error(f"Newsletter scheduler check failed: {e}")
+            logger_user_checker.error(f"Traceback: {traceback.format_exc()}")
+            time.sleep(WORKER_ERROR_RETRY_SECONDS)
 
 
 def handle_plan_reset(user_id, email, current_date, timezone, plan_info):
@@ -279,7 +291,7 @@ def run_script_for_user(user):
                 return
 
         # run flow for user
-        run_flow_for_user(
+        pipeline_succeeded = run_flow_for_user(
             uid=user_id,
             email=email,
             followers=accounts_X,
@@ -294,6 +306,13 @@ def run_script_for_user(user):
             # scheduled run independently of their on-demand credit balance.
             credits_usage=None,
         )
+        if not pipeline_succeeded:
+            logger.error(
+                f"Newsletter generation failed for {email}; "
+                "leaving the last-generation time unchanged so it can retry"
+            )
+            return
+
         logger.info(f"Successfully generated content for user {email}")
         logger.info("")
 
@@ -314,25 +333,33 @@ def run_script_for_user(user):
 def process_users():
     """Thread function to process users from queue."""
     while True:
-        if not users_queue.empty():
-            user = users_queue.get()
-            with queue_lock:
-                users_in_queue.remove(user["uid"])  # Remove user from tracking set
-            run_script_for_user(user)
-            users_queue.task_done()
+        try:
+            if not users_queue.empty():
+                user = users_queue.get()
+                try:
+                    with queue_lock:
+                        users_in_queue.discard(user["uid"])
+                    run_script_for_user(user)
+                finally:
+                    users_queue.task_done()
 
-            # sleep for 1 minute
-            sleep_time = 10
-            logger.info(f"Sleeping for {sleep_time} seconds before next user...")
-            time.sleep(sleep_time)
-        else:
-            # Sleep until next hour
-            next_hour = (datetime.now() + timedelta(hours=1)).replace(
-                minute=0, second=0, microsecond=0
-            )
-            sleep_seconds = (next_hour - datetime.now()).total_seconds() + 60
-            logger.info(f"No users in queue, waiting for {sleep_seconds} seconds...")
-            time.sleep(sleep_seconds)
+                sleep_time = 10
+                logger.info(f"Sleeping for {sleep_time} seconds before next user...")
+                time.sleep(sleep_time)
+            else:
+                # Sleep until next hour
+                next_hour = (datetime.now() + timedelta(hours=1)).replace(
+                    minute=0, second=0, microsecond=0
+                )
+                sleep_seconds = (next_hour - datetime.now()).total_seconds() + 60
+                logger.info(
+                    f"No users in queue, waiting for {sleep_seconds} seconds..."
+                )
+                time.sleep(sleep_seconds)
+        except Exception as e:
+            logger.error(f"Newsletter queue processor failed: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            time.sleep(WORKER_ERROR_RETRY_SECONDS)
 
 
 def main():  # 7 AM

@@ -385,8 +385,8 @@ def run_flow_for_user(
     newsletter_email: Optional[str] = None,
     credits_usage: Optional[CreditsUsage] = None,
     local_data_dir: Optional[str] = None,
-):
-    """Runs the full content generation pipeline for a user - scraping posts, generating summary files and audio."""
+) -> bool:
+    """Run the full pipeline and report whether every requested stage finished."""
 
     # Initialize progress tracking
     progress_data = initialize_progress_tracking(uid)
@@ -429,7 +429,7 @@ def run_flow_for_user(
                     {"status": "error", "error": "No data collected!"}
                 )
                 utils_firebase.update_data_firestore_DB(uid, progress_data)
-                return None
+                return False
 
             progress_data["pipeline_status"].update({"status": "success"})
             progress_data["pipeline_status"]["stages_completed"].append(
@@ -572,7 +572,7 @@ def run_flow_for_user(
                         {"status": "error", "error": "Failed to send email!"}
                     )
                     utils_firebase.update_data_firestore_DB(uid, progress_data)
-                    return None
+                    return False
 
                 progress_data["pipeline_status"].update({"status": "success"})
                 progress_data["pipeline_status"]["stages_completed"].append(
@@ -598,6 +598,7 @@ def run_flow_for_user(
             logger.info(
                 f"✅ Successfully completed full content generation pipeline for user: {email}"
             )
+            return True
 
         except Exception as e:
             error_msg = f"Error for {email}: {str(e)}"
@@ -615,3 +616,4 @@ def run_flow_for_user(
                 }
             )
             utils_firebase.update_data_firestore_DB(uid, progress_data)
+            return False
