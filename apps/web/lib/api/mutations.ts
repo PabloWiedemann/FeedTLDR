@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { track } from "@/lib/analytics";
 import { api, unwrap } from "./client";
 import { queryKeys } from "./query-keys";
 import type {
@@ -51,7 +52,10 @@ export function useStartGeneration() {
           body: { skip_audio: false, skip_email: false, ...body },
         })
       ),
-    onSuccess: () => invalidate([queryKeys.generationStatus]),
+    onSuccess: () => {
+      track("generation_started");
+      invalidate([queryKeys.generationStatus]);
+    },
     onError: toastError,
   });
 }
@@ -172,10 +176,14 @@ function useStripeRedirect<TVariables>(
 
 export function useCheckout() {
   return useStripeRedirect(
-    async (priceId: string) =>
-      unwrap<{ url: string }>(
+    async (priceId: string) => {
+      // send_instantly: the Stripe redirect unloads the page before the
+      // batched event queue would flush.
+      track("checkout_started", { price_id: priceId }, { sendInstantly: true });
+      return unwrap<{ url: string }>(
         await api.POST("/v1/billing/checkout", { body: { price_id: priceId } })
-      ),
+      );
+    },
     "Could not start checkout. Try again."
   );
 }

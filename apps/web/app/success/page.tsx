@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CheckCircle } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/feedtldr/logo";
+import { TrackEvent } from "@/components/feedtldr/track-event";
 
 export const metadata: Metadata = { title: "Payment successful" };
 
@@ -10,6 +11,7 @@ export const metadata: Metadata = { title: "Payment successful" };
 export default function SuccessPage() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-8 px-6 text-center">
+      <TrackEvent event="subscription_purchased" />
       <Logo />
       <CheckCircle
         weight="fill"
