@@ -53,8 +53,10 @@ import { PlanCard } from "@/components/feedtldr/plan-card";
 import { SourceDataTable } from "@/components/feedtldr/source-data-table";
 import { Spinner } from "@/components/feedtldr/spinner";
 import { StatCard } from "@/components/feedtldr/stat-card";
+import { PostHoverPreviews } from "@/components/feedtldr/post-hover-previews";
 import { SummaryProse } from "@/components/feedtldr/summary-prose";
 import { TagInput, type TagItem } from "@/components/feedtldr/tag-input";
+import { UsageSummary } from "@/components/feedtldr/usage-summary";
 
 const SAMPLE_SUMMARY = `
 <h3>Funding and Valuations</h3>
@@ -62,15 +64,36 @@ const SAMPLE_SUMMARY = `
 companies fundraising at multi-billion valuations and one research lab
 spinning out a consumer product team.</p>
 <ul>
-  <li><a href="#">x.com/example/status/1</a></li>
-  <li><a href="#">x.com/example/status/2</a></li>
+  <li><a href="https://x.com/example/status/1">x.com/example/status/1</a></li>
+  <li><a href="https://x.com/example/status/2">x.com/example/status/2</a></li>
 </ul>
 <h3>Practical Applications</h3>
 <p>Grid operators are testing model-driven load balancing, and a major video
 tool announced in-editor generation for both editing and creation.</p>
 <ul>
-  <li><a href="#">x.com/example/status/3</a></li>
+  <li><a href="https://x.com/example/status/3">x.com/example/status/3</a></li>
 </ul>`;
+
+const SAMPLE_POSTS = [
+  {
+    url: "https://x.com/example/status/1",
+    text: "Q3 numbers are in: generative AI startups raised $3.9B, and that is before the two mega-rounds close.\n\nFull breakdown in the thread below.",
+    userName: "example",
+    createdAt: "2026-08-17 08:12",
+  },
+  {
+    url: "https://x.com/example/status/2",
+    text: "Confirmed: the research lab is spinning out its consumer product team into a separate company.",
+    userName: "example",
+    createdAt: "2026-08-17 09:40",
+  },
+  {
+    url: "https://x.com/example/status/3",
+    text: "Grid operators in two EU countries are now testing model-driven load balancing in production.",
+    userName: "example",
+    createdAt: "2026-08-17 11:03",
+  },
+];
 
 const ONBOARDING_STEPS = ["Accounts", "Verify", "Newsletter"] as const;
 
@@ -113,6 +136,22 @@ const SAMPLE_PRO_PLAN = {
   price_id_year: "price_pro_year",
   price_month: 11.99,
   price_year: 119.99,
+};
+
+const SAMPLE_USAGE = {
+  plan: "pro",
+  credits: {
+    monthly_left: 77,
+    monthly_limit: 100,
+    prepaid_left: 0,
+    prepaid_limit: 0,
+  },
+  usage: {
+    n_generations: 8,
+    n_newsletters_sent: 14,
+    n_chat_messages: 5,
+    n_followers_scraped: 420,
+  },
 };
 
 function Section({
@@ -358,6 +397,7 @@ export default function DesignGallery() {
             interval="month"
             isSignedIn
             isCurrent={false}
+            currentPlan="pro"
             availableCredits={77}
             isBusy={false}
             onAction={() => toast.info("Plan action")}
@@ -367,6 +407,7 @@ export default function DesignGallery() {
             interval="month"
             isSignedIn
             isCurrent
+            currentPlan="pro"
             availableCredits={77}
             isBusy={false}
             onAction={() => toast.info("Plan action")}
@@ -374,11 +415,17 @@ export default function DesignGallery() {
         </div>
       </Section>
 
+      <Section title="Usage summary">
+        <UsageSummary usage={SAMPLE_USAGE} />
+      </Section>
+
       <Section title="Summary prose + audio">
         <AudioPill src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=" />
         <Card>
           <CardContent>
-            <SummaryProse html={SAMPLE_SUMMARY} />
+            <PostHoverPreviews posts={SAMPLE_POSTS}>
+              <SummaryProse html={SAMPLE_SUMMARY} />
+            </PostHoverPreviews>
           </CardContent>
         </Card>
       </Section>

@@ -66,7 +66,7 @@ Size, line-height, tracking and weight travel together as one token, so a headin
 | `text-sm` | 14px / 1.5 / 400 | Helper text, meta |
 | `text-xs` | 12px / 1.4 | Labels, chips (sentence case, not all-caps) |
 
-Rules: summary prose capped at `max-w-prose` (65ch, `--container-prose`). Timestamps, credit counts, and prices use `tabular-nums`. Inputs are ≥16px on mobile (`text-base sm:text-sm`) to prevent iOS zoom. Headings ≤ 2 lines in heroes. Body text never lighter than weight 400. Use `text-balance` / `text-pretty`, never an inline `textWrap` style.
+Rules: summary prose fills its card; the card's width and padding set the measure (`max-w-prose` remains for legal pages and descriptions). The renderer normalizes model spacing artifacts (`lib/summary-html.ts`): `<br><hr><br>` dividers, stray between-block breaks, and empty paragraphs are stripped. Timestamps, credit counts, and prices use `tabular-nums`. Inputs are ≥16px on mobile (`text-base sm:text-sm`) to prevent iOS zoom. Headings ≤ 2 lines in heroes. Body text never lighter than weight 400. Use `text-balance` / `text-pretty`, never an inline `textWrap` style.
 
 ## 4. Shape, borders, elevation
 
@@ -77,7 +77,7 @@ Rules: summary prose capped at `max-w-prose` (65ch, `--container-prose`). Timest
 - Inputs, textareas, popovers, kbd: `rounded-field` (12px, `--radius-field`)
 - Nested surfaces follow concentric radius: outer = inner + padding
 
-**Borders & elevation:** app cards are `bg-card` with `border border-border` (1px) and no shadow. Marketing/bento cards are borderless and float on `shadow-card` instead. Elevation is four tokens and nothing else:
+**Borders & elevation:** app cards are `bg-card` with `border border-border` (1px) and no shadow; the app summary card and source-data disclosure are borderless flat white directly on the canvas. Marketing/bento cards are borderless and float on `shadow-card`. Elevation is four tokens and nothing else:
 
 - `shadow-overlay` — sheet, dialog, dropdown, select, tooltip
 - `shadow-lift` — subtle hover-lift accents, active tab pill
@@ -89,7 +89,7 @@ Tailwind's default `shadow-xs/sm/md/lg/xl` are banned and fail `pnpm check:token
 ## 5. Spacing & layout
 
 - Spacing scale: Tailwind default (4px base). Section rhythm on marketing pages: `py-24`–`py-32`. App pages: `py-10`–`py-16`.
-- Content containers: marketing `max-w-5xl` (nav, main, footer share the one column), app content column `max-w-3xl`, settings sheet `max-w-sheet` (520px, `--container-sheet`), prose `max-w-prose`.
+- Content containers: marketing `max-w-5xl` (nav, main, footer share the one column), app content column `max-w-4xl` (bar and content on one grid), settings sheet `max-w-sheet` (520px, `--container-sheet`), prose `max-w-prose`.
 - Marketing header: sticky glass bar — `bg-background/70` + `backdrop-blur-md backdrop-saturate-150` + `border-b border-border/70` hairline; content scrolls beneath it.
 - Layout margins: ≥16px inline on mobile; controls never touch viewport edges; media may bleed.
 - Alignment: app pages left-aligned. Landing hero is a centered stack (headline, subhead, CTA) over a bento grid: the summary preview card spans two thirds, three feature tiles stack beside it, collapsing to single column under `lg`.
@@ -120,7 +120,8 @@ Base primitives via `npx shadcn@latest add`, then restyled through tokens (never
 | Component | Base | Notes |
 | --- | --- | --- |
 | `Button` | shadcn button + CVA | Variants: `default` (mint fill, ink text, `--btn-border` outline), `tonal` (accent wash + thin ink border, fills mint on hover), `outline`, `secondary`, `ghost`, `destructive`, `link`, icon sizes. Hover washes use `--accent`. Press scale 0.96 |
-| `AppBar` | custom | App pages: settings icon-button left; Re-generate primary + Avatar right (mock 2) |
+| `GlassHeader` | custom | The sticky glass bar shared by `MarketingNav` and `AppBar`; `className` sets the container width |
+| `AppBar` | custom | On `GlassHeader`: settings icon-button left; Re-generate primary + AI chat outline + Avatar right (labels collapse to icons under `sm`). Avatar shows the Google `photoURL` when present, else initials |
 | `MarketingNav` | custom | Sticky glass bar (§5). Logo left; Pricing + auth-aware `NavAuthButton` right ("Your brief" when signed in, "Log in" otherwise, both `tonal`); ≤72px tall |
 | `SummaryPreview` | custom (landing) | Hero product card: dated brief with decorative Play pill and `SummaryProse` sample, borderless on `shadow-card` |
 | `Footer` | custom | Copyright + legal links |
@@ -139,8 +140,9 @@ Base primitives via `npx shadcn@latest add`, then restyled through tokens (never
 | `PageHeader` | custom | Title + description + supporting controls, at `text-display-lg` |
 | `EmailChipList` | custom | Newsletter recipient(s); remove-to-unsubscribe with confirm |
 | `FeedSection` | custom | Headline + body + links list; hairline-separated (mock 2) |
-| `SummaryProse` | custom | Sanitized `summary_html` renderer, prose styles, `max-w-[65ch]`, links per §2 |
-| `AudioPill` | custom | "Play summary" outline pill wrapping `<audio>`: play/pause, progress, time `tabular-nums` |
+| `SummaryProse` | custom | Sanitized `summary_html` renderer via `normalizeSummaryHtml`; prose fills its card; source links render as icon pills |
+| `PostHoverPreviews` | custom | Wraps `SummaryProse`: hovering/focusing a source link shows the original post verbatim in a floating card (matched by status id from source data); dismissed on page scroll; touch skips to X |
+| `AudioPill` | custom | "Play summary" outline pill wrapping `<audio>`; progress bar + time (`tabular-nums`) appear only while listening and reset when playback ends |
 | `GenerationProgress` | custom | Stage list (collect → summarize → audio → email) driven by `pipeline_status` polling; skeleton-first |
 | `CreditBadge` | custom | Cost + remaining credits, `tabular-nums` |
 | `Avatar` | shadcn avatar | Initials on the `--accent` green tint |
@@ -162,7 +164,7 @@ Every component ships with: hover, focus-visible, active, disabled, loading, and
 ## 9. Page specs
 
 - **Landing `/`** — sticky glass MarketingNav; centered hero (display-xl in `font-display`, ≤2 lines on desktop, subhead ≤25 words, "Get your first brief" primary pill + "Free to start" note); bento grid (SummaryPreview two-thirds + inbox/chat/listen tiles with neutral icon chips); below the fold only a slim 3-step strip and a closing CTA; footer. Source links inside summary prose render as icon pills (`.summary-prose` styles).
-- **Feed `/app`** — AppBar; "Today's Feed" display-lg; "Generated on …" muted with user-timezone formatting; AudioPill; hairline-separated FeedSections; Tabs to Source data (StatCards + Charts + DataTable). States: demo (no generations yet: banner + demo summary), generating (GenerationProgress replaces stale summary CTA area), error (inline with retry), empty-scrape (explain + link to settings).
+- **Feed `/app`** — sticky glass AppBar; one flat white card holding "Today's Feed" (display-lg), "Generated on …" muted with user-timezone formatting, AudioPill, and the summary prose (no dividers — whitespace separates sections; PostHoverPreviews on source links). Below it, a quiet "Source data" disclosure card (StatCards + Charts + DataTable, fetched on open; hidden for demo feeds). States: demo (banner + demo summary), generating (GenerationProgress card), error (inline with retry), empty-scrape (explain + link to settings).
 - **Settings sheet** (over `/app`) — three white cards per mock 3: Accounts (TagInput + verify + import-followees popover), Newsletter email (EmailChipList + subscribe), AI prompt (ThemePicker + textarea); timezone select; Re-generate primary at bottom. Inline validation below fields; plan-limit notices with upgrade link.
 - **Generate dialog** — fetch-latest toggle vs re-summarize, theme/prompt, CreditBadge cost preview, Generate primary; disabled states explain why (no accounts / none verified / insufficient credits).
 - **Auth `/login` `/signup`** — single centered card on cream, logo, email+password + Google button, plain error copy; password requirements as helper list.
@@ -174,7 +176,7 @@ Every component ships with: hover, focus-visible, active, disabled, loading, and
 
 ## 10. Accessibility baseline
 
-Focus-visible rings on every interactive element via the `focus-ring` utility (`--ring-width` at `--ring-opacity` of `--ring`) — one definition, never re-stated per component. Hit areas ≥40px. Labels above inputs, errors below, no placeholder-as-label. Landmarks + skip link in app shell. Sheet/dialog trap focus and restore on close. Audio player fully keyboard-operable. Contrast: all text AA minimum (this is why `--link` is darker than the mock; verify chips' pastel text pairs). `prefers-reduced-motion` respected globally. Charts get text alternatives (StatCards carry the numbers).
+Enabled buttons and `role="button"` elements show the pointer cursor (base rule in `globals.css`); disabled ones keep the default cursor. Focus-visible rings on every interactive element via the `focus-ring` utility (`--ring-width` at `--ring-opacity` of `--ring`) — one definition, never re-stated per component. Hit areas ≥40px. Labels above inputs, errors below, no placeholder-as-label. Landmarks + skip link in app shell. Sheet/dialog trap focus and restore on close. Audio player fully keyboard-operable. Contrast: all text AA minimum (this is why `--link` is darker than the mock; verify chips' pastel text pairs). `prefers-reduced-motion` respected globally. Charts get text alternatives (StatCards carry the numbers).
 
 ## 11. Anti-slop checklist (pre-merge, every UI PR)
 

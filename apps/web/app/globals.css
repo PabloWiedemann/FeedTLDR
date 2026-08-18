@@ -203,6 +203,10 @@
   * {
     @apply border-border outline-ring/50;
   }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
@@ -223,7 +227,7 @@
    (headlines + paragraphs + link lists, per mock 2).
    ============================================================ */
 .summary-prose {
-  max-width: var(--container-prose);
+  /* the measure comes from the surrounding card/container; prose fills it */
   font-size: 1rem;
   line-height: 1.6;
 }
@@ -235,16 +239,25 @@
   line-height: 1.3;
   margin-top: 2.5rem;
   margin-bottom: 0.75rem;
-  border-top: 1px solid var(--border);
-  padding-top: 2.5rem;
 }
 .summary-prose h1:first-child,
 .summary-prose h2:first-child,
 .summary-prose h3:first-child,
 .summary-prose h4:first-child {
   margin-top: 0;
-  border-top: none;
-  padding-top: 0;
+}
+/* whitespace, not lines, separates summary sections; drop any
+   divider the model emits */
+.summary-prose hr {
+  display: none;
+}
+/* a heading directly under another heading sits close to it instead
+   of carrying the full section gap */
+.summary-prose :is(h1, h2, h3, h4) + :is(h1, h2, h3, h4) {
+  margin-top: 1rem;
+}
+.summary-prose p:empty {
+  display: none;
 }
 .summary-prose h1 { font-size: 1.375rem; }
 .summary-prose h2 { font-size: 1.25rem; }

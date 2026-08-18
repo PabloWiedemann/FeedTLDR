@@ -1,14 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowsClockwise,
+  ChatCircleDots,
   CreditCard,
   Faders,
   SignOut,
   User,
 } from "@phosphor-icons/react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,11 +20,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/components/providers";
 import { logout } from "@/lib/firebase";
 import { accountPlanLabel } from "@/lib/plans";
+import { GlassHeader } from "./glass-header";
 
 /**
- * App header (mock 2): settings icon-button left; Re-generate + avatar right.
+ * App header: settings icon-button left; Re-generate + AI chat + avatar
+ * right, on the shared sticky glass bar. The avatar shows the Google
+ * profile photo when the account has one, otherwise initials.
  */
 export function AppBar({
   email,
@@ -40,6 +46,7 @@ export function AppBar({
   regenerateDisabled?: boolean;
 }) {
   const router = useRouter();
+  const { user } = useAuth();
   const initials =
     (name || email)
       .split(/[\s@.]+/)
@@ -49,7 +56,7 @@ export function AppBar({
       .join("") || "?";
 
   return (
-    <header className="mx-auto flex h-18 w-full max-w-3xl items-center justify-between px-6">
+    <GlassHeader className="max-w-4xl">
       <Button
         variant="outline"
         size="icon"
@@ -58,9 +65,20 @@ export function AppBar({
       >
         <Faders />
       </Button>
-      <div className="flex items-center gap-3">
-        <Button onClick={onRegenerate} disabled={regenerateDisabled}>
-          <ArrowsClockwise /> Re-generate
+      <div className="flex items-center gap-2 sm:gap-3">
+        <Button
+          onClick={onRegenerate}
+          disabled={regenerateDisabled}
+          aria-label="Re-generate summary"
+        >
+          <ArrowsClockwise />
+          <span className="hidden sm:inline">Re-generate</span>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/app/chat" aria-label="Open AI chat">
+            <ChatCircleDots />
+            <span className="hidden sm:inline">AI chat</span>
+          </Link>
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -68,6 +86,9 @@ export function AppBar({
             className="rounded-full focus-ring"
           >
             <Avatar className="size-10 bg-accent">
+              {user?.photoURL && (
+                <AvatarImage src={user.photoURL} alt="" referrerPolicy="no-referrer" />
+              )}
               <AvatarFallback className="bg-accent text-sm font-medium text-accent-foreground">
                 {initials}
               </AvatarFallback>
@@ -102,6 +123,6 @@ export function AppBar({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </header>
+    </GlassHeader>
   );
 }

@@ -18,7 +18,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (loading || !user) {
     return (
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-16">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-16">
         <Skeleton className="h-10 w-40 rounded-full" />
         <Skeleton className="h-14 w-2/3" />
         <Skeleton className="h-4 w-1/3" />
