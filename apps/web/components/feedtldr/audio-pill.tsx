@@ -7,8 +7,9 @@ import { formatAudioTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /**
- * "Play summary" pill (mock 2): wraps the generated mp3 in an outline pill
- * that shows progress + remaining time while playing.
+ * "Play summary" pill: wraps the generated mp3 in an outline pill. The
+ * progress bar and time appear only while the visitor is listening
+ * (playing, or paused mid-way) and disappear again when playback ends.
  */
 export function AudioPill({ src, className }: { src: string; className?: string }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -22,7 +23,10 @@ export function AudioPill({ src, className }: { src: string; className?: string 
     if (!audio) return;
     const onTime = () => setProgress(audio.currentTime);
     const onMeta = () => setDuration(audio.duration || 0);
-    const onEnd = () => setPlaying(false);
+    const onEnd = () => {
+      setPlaying(false);
+      setProgress(0);
+    };
     const onError = () => {
       setFailed(true);
       setPlaying(false);
@@ -74,7 +78,7 @@ export function AudioPill({ src, className }: { src: string; className?: string 
         {playing ? <Pause /> : <SpeakerHigh />}
         {playing ? "Pause" : "Play summary"}
       </Button>
-      {duration > 0 && (
+      {duration > 0 && (playing || progress > 0) && (
         <div className="flex items-center gap-2" aria-hidden="true">
           <div className="h-1 w-24 overflow-hidden rounded-full bg-border">
             <div

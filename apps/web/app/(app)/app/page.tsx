@@ -1,14 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ChatCircleDots } from "@phosphor-icons/react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { CaretDown } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppBar } from "@/components/feedtldr/app-bar";
 import { AudioPill } from "@/components/feedtldr/audio-pill";
 import { EmptyState } from "@/components/feedtldr/empty-state";
@@ -16,18 +15,26 @@ import { GenerateDialog } from "@/components/feedtldr/generate-dialog";
 import { GenerationProgress } from "@/components/feedtldr/generation-progress";
 import { Notice } from "@/components/feedtldr/notice";
 import { PageHeader } from "@/components/feedtldr/page-header";
+import {
+  PostHoverPreviews,
+  type SourcePost,
+} from "@/components/feedtldr/post-hover-previews";
 import { SettingsSheet } from "@/components/feedtldr/settings-sheet";
 import { SourceDataView } from "@/components/feedtldr/source-data";
 import { SummaryProse } from "@/components/feedtldr/summary-prose";
-import { useFeed, useGenerationStatus, useMe } from "@/lib/api/queries";
+import {
+  useFeed,
+  useGenerationStatus,
+  useMe,
+  useSourceData,
+} from "@/lib/api/queries";
+import { cn } from "@/lib/utils";
 import { useUpdateMe } from "@/lib/api/mutations";
 import { generationResultKeys, queryKeys } from "@/lib/api/query-keys";
 
-type FeedTab = "summary" | "data";
-
 function FeedSkeleton() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 rounded-card bg-card p-6 sm:p-10">
       <Skeleton className="h-14 w-2/3" />
       <Skeleton className="h-4 w-56" />
       <Skeleton className="h-9 w-40 rounded-full" />
@@ -38,6 +45,46 @@ function FeedSkeleton() {
         <Skeleton className="h-4 w-2/3" />
       </div>
     </div>
+  );
+}
+
+/**
+ * Source data demoted to a quiet card row below the summary: it only
+ * explains how the brief was made, so it stays folded until asked for.
+ */
+function SourceDataDisclosure() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <section className="rounded-card bg-card">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        className={cn(
+          "focus-ring flex w-full items-center justify-between gap-4 p-6 text-left transition-colors duration-150 ease-brand hover:bg-accent sm:px-8",
+          open ? "rounded-t-card" : "rounded-card"
+        )}
+      >
+        <span className="flex flex-col gap-0.5">
+          <span className="font-medium">Source data</span>
+          <span className="text-sm text-muted-foreground text-pretty">
+            The posts and accounts behind this brief.
+          </span>
+        </span>
+        <CaretDown
+          className={cn(
+            "size-4 shrink-0 text-muted-foreground transition-transform duration-200 ease-brand",
+            open && "rotate-180"
+          )}
+        />
+      </button>
+      {open && (
+        <div className="p-6 pt-0 sm:px-8 sm:pb-8">
+          <SourceDataView enabled={open} />
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -92,10 +139,31 @@ export default function FeedPage() {
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [generateOpen, setGenerateOpen] = useState(false);
-  const [tab, setTab] = useState<FeedTab>("summary");
 
   const generating =
     status.data?.status === "in_progress" && !status.data.end_time;
+
+  // Powers the hover previews on summary source links; shares its cache
+  // with the source-data disclosure below the card.
+  const sourceData = useSourceData(Boolean(feed.data && !feed.data.is_demo));
+  const posts = useMemo<SourcePost[]>(
+    () =>
+      (sourceData.data?.rows ?? []).flatMap((row) =>
+        typeof row.url === "string" && typeof row.text === "string"
+          ? [
+              {
+                url: row.url,
+                text: row.text,
+                userName:
+                  typeof row.userName === "string" ? row.userName : undefined,
+                createdAt:
+                  typeof row.createdAt === "string" ? row.createdAt : undefined,
+              },
+            ]
+          : []
+      ),
+    [sourceData.data]
+  );
 
   useGenerationCompletion(status.data?.status, status.data?.error);
   useTermsAcceptance(me.data?.tos_accepted, me.data?.onboarded);
@@ -116,7 +184,7 @@ export default function FeedPage() {
         regenerateDisabled={generating}
       />
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 pt-10 pb-24">
+      <main className="mx-auto w-full max-w-4xl flex-1 px-4 pt-8 pb-24 sm:px-6 sm:pt-12">
         {feed.isLoading || me.isLoading ? (
           <FeedSkeleton />
         ) : feed.isError ? (
@@ -144,21 +212,8 @@ export default function FeedPage() {
               </Notice>
             )}
 
-            <PageHeader
-              title={feed.data.is_demo ? "Demo Feed" : "Today's Feed"}
-              description={
-                feed.data.last_generation_time_local
-                  ? `Generated on ${feed.data.last_generation_time_local}`
-                  : undefined
-              }
-            >
-              {!generating && feed.data.audio_url && (
-                <AudioPill src={feed.data.audio_url} className="pt-1" />
-              )}
-            </PageHeader>
-
             {generating ? (
-              <div className="rounded-card border bg-card p-6">
+              <Card className="border-none p-6 sm:p-8">
                 <GenerationProgress
                   currentStage={status.data?.current_stage ?? "starting"}
                   stagesCompleted={status.data?.stages_completed ?? []}
@@ -168,49 +223,32 @@ export default function FeedPage() {
                       : undefined
                   }
                 />
-              </div>
+              </Card>
             ) : (
-              <Tabs
-                value={tab}
-                onValueChange={(value) => setTab(value as FeedTab)}
-              >
-                <TabsList>
-                  <TabsTrigger value="summary">Summary</TabsTrigger>
-                  <TabsTrigger value="data" disabled={feed.data.is_demo}>
-                    Source data
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="summary" className="pt-6">
-                  <div className="border-t pt-8">
+              <>
+                <Card className="gap-8 border-none p-6 sm:p-10 lg:p-12">
+                  <PageHeader
+                    title={feed.data.is_demo ? "Demo Feed" : "Today's Feed"}
+                    description={
+                      feed.data.last_generation_time_local
+                        ? `Generated on ${feed.data.last_generation_time_local}`
+                        : undefined
+                    }
+                  >
+                    {feed.data.audio_url && (
+                      <AudioPill src={feed.data.audio_url} className="pt-1" />
+                    )}
+                  </PageHeader>
+                  <PostHoverPreviews posts={posts}>
                     <SummaryProse html={feed.data.summary_html} />
-                  </div>
-                </TabsContent>
-                <TabsContent value="data" className="pt-6">
-                  <SourceDataView
-                    enabled={tab === "data" && !feed.data.is_demo}
-                  />
-                </TabsContent>
-              </Tabs>
+                  </PostHoverPreviews>
+                </Card>
+                {!feed.data.is_demo && <SourceDataDisclosure />}
+              </>
             )}
           </div>
         ) : null}
       </main>
-
-      {!generating && (
-        <div className="pointer-events-none sticky bottom-6 mx-auto w-full max-w-3xl px-6">
-          <div className="flex justify-end">
-            <Button
-              asChild
-              variant="outline"
-              className="pointer-events-auto bg-card"
-            >
-              <Link href="/app/chat">
-                <ChatCircleDots /> AI chat
-              </Link>
-            </Button>
-          </div>
-        </div>
-      )}
 
       <SettingsSheet
         open={settingsOpen}

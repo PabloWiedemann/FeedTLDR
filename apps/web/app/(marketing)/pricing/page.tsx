@@ -32,7 +32,7 @@ export default function PricingPage() {
   const usage = useBillingUsage(Boolean(user));
   const checkout = useCheckout();
   const portal = useBillingPortal();
-  const [interval, setInterval] = useState<BillingInterval>("month");
+  const [interval, setInterval] = useState<BillingInterval>("year");
 
   function handleAction(intent: PlanIntent, priceId: string | null | undefined) {
     if (intent === "signup") return router.push("/signup");
@@ -74,7 +74,11 @@ export default function PricingPage() {
                 plan={plan}
                 interval={interval}
                 isSignedIn={Boolean(user)}
-                isCurrent={me.data?.plan === plan.id}
+                isCurrent={
+                  me.data?.plan === plan.id &&
+                  (plan.id === "free" || me.data.plan_info.period === interval)
+                }
+                currentPlan={me.data?.plan}
                 availableCredits={
                   me.data
                     ? me.data.credits.monthly_left + me.data.credits.prepaid_left

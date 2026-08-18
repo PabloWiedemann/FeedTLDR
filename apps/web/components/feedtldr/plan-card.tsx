@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Spinner } from "./spinner";
 import { formatCount } from "@/lib/format";
-import { planName } from "@/lib/plans";
+import { isPlanUpgrade, planName } from "@/lib/plans";
 import { cn } from "@/lib/utils";
 import type { Plan } from "@/lib/api/types";
 
@@ -76,6 +76,7 @@ export function PlanCard({
   interval,
   isSignedIn,
   isCurrent,
+  currentPlan,
   availableCredits,
   isBusy,
   onAction,
@@ -84,6 +85,7 @@ export function PlanCard({
   interval: BillingInterval;
   isSignedIn: boolean;
   isCurrent: boolean;
+  currentPlan?: string;
   availableCredits?: number;
   isBusy: boolean;
   onAction: (intent: PlanIntent, priceId: string | null | undefined) => void;
@@ -94,8 +96,9 @@ export function PlanCard({
   const action = planAction(plan, { isSignedIn, isCurrent });
   const isFree = plan.id === FREE_PLAN;
   const trialComplete = isFree && isCurrent && (availableCredits ?? 1) < 3;
-  // One filled button per row: the paid plan the visitor does not have yet.
-  const isPrimaryAction = !isCurrent && plan.id !== FREE_PLAN;
+  const isPrimaryAction = isSignedIn
+    ? isPlanUpgrade(currentPlan, plan.id)
+    : plan.id !== FREE_PLAN;
 
   return (
     <Card
