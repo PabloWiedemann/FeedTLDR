@@ -2,7 +2,8 @@
 legacy utils_user.py; auth itself moved to Firebase Auth on the client with
 ID-token verification in the API (see docs/PLAN.md section 1.3).
 
-Kept verbatim: get_all_users_timezones, get_user_subscription_info_from_stripe.
+Kept from the legacy app: get_all_users_timezones,
+get_user_subscription_info_from_stripe.
 Extracted: register_user_in_db_core (the Firestore/Stripe core of the legacy
 register_user_in_db, minus auth.create_user which the client SDK now performs).
 """
@@ -25,6 +26,8 @@ if stripe_env:
     stripe.api_key = os.environ.get(f"STRIPE_API_KEY_{stripe_env.upper()}")
 
 logger = get_logger(name="main_logger")
+
+DEFAULT_USER_TIMEZONE = "America/New_York"
 
 
 def register_user_in_db_core(
@@ -143,10 +146,24 @@ def get_all_users_timezones():
     firestore_db = firestore.client()
     docs = firestore_db.collection("customers").stream()
 
-    user_data = [
-        {"uid": doc.id, "timezone": doc.get("settings_global").get("timezone")}
-        for doc in docs
-    ]
+    user_data = []
+    for doc in docs:
+        try:
+            settings = doc.get("settings_global") or {}
+        except (KeyError, TypeError):
+            settings = {}
+
+        timezone_name = settings.get("timezone") or DEFAULT_USER_TIMEZONE
+        try:
+            pytz.timezone(timezone_name)
+        except (pytz.UnknownTimeZoneError, AttributeError):
+            logger.warning(
+                f"Invalid timezone for user {doc.id}: {timezone_name!r}. "
+                f"Falling back to {DEFAULT_USER_TIMEZONE}."
+            )
+            timezone_name = DEFAULT_USER_TIMEZONE
+
+        user_data.append({"uid": doc.id, "timezone": timezone_name})
 
     return user_data
 
