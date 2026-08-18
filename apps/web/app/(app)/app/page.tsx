@@ -110,6 +110,7 @@ export default function FeedPage() {
       <AppBar
         email={me.data?.email ?? ""}
         name={me.data?.name}
+        plan={me.data?.plan}
         onOpenSettings={() => setSettingsOpen(true)}
         onRegenerate={() => setGenerateOpen(true)}
         regenerateDisabled={generating}

@@ -1,10 +1,19 @@
 "use client";
 
 import { Check } from "@phosphor-icons/react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Spinner } from "./spinner";
 import { formatCount } from "@/lib/format";
+import { planName } from "@/lib/plans";
+import { cn } from "@/lib/utils";
 import type { Plan } from "@/lib/api/types";
 
 export type BillingInterval = "month" | "year";
@@ -39,7 +48,7 @@ export function planAction(
   }
   return isFree
     ? { label: "Trial for new accounts", intent: "none" }
-    : { label: `Switch to ${plan.id}`, intent: "checkout" };
+    : { label: `Switch to ${planName(plan.id)}`, intent: "checkout" };
 }
 
 function planFeatures(plan: Plan): string[] {
@@ -89,11 +98,20 @@ export function PlanCard({
   const isPrimaryAction = !isCurrent && plan.id !== FREE_PLAN;
 
   return (
-    <Card className={plan.id === FEATURED_PLAN ? "border-foreground/40" : undefined}>
+    <Card
+      aria-current={isCurrent ? "true" : undefined}
+      className={cn(
+        isCurrent && "border-foreground",
+        !isCurrent && plan.id === FEATURED_PLAN && "border-foreground/40"
+      )}
+    >
       <CardHeader>
-        <CardTitle className={isFree ? undefined : "capitalize"}>
-          {isFree ? "Free trial" : plan.id}
-        </CardTitle>
+        <CardTitle>{planName(plan.id)}</CardTitle>
+        {isCurrent && (
+          <CardAction>
+            <Badge>Current plan</Badge>
+          </CardAction>
+        )}
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-6">
         <p className="text-3xl font-semibold tabular-nums">
