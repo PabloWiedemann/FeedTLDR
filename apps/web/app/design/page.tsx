@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Article, XLogo } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { AccountChip } from "@/components/feedtldr/account-chip";
 import { AppBar } from "@/components/feedtldr/app-bar";
+import {
+  ChatComposer,
+  ChatEmptyState,
+  type ChatContextCard,
+} from "@/components/feedtldr/chat-panel";
 import { AudioPill } from "@/components/feedtldr/audio-pill";
 import { CreditBadge } from "@/components/feedtldr/credit-badge";
 import { EmptyState } from "@/components/feedtldr/empty-state";
@@ -166,6 +172,56 @@ function Section({
       <h2 className="text-section">{title}</h2>
       {children}
     </section>
+  );
+}
+
+/**
+ * Chat panel pieces with local state: the empty state's tilted card and the
+ * composer with removable/re-addable context cards. Wrapped in the same
+ * `group/panel` + `data-state` the real panel uses so the reveal styles
+ * resolve to their open position.
+ */
+function ChatPreview() {
+  const [draft, setDraft] = useState("");
+  const [context, setContext] = useState({ posts: true, summary: true });
+  const cards: ChatContextCard[] = [
+    {
+      id: "posts",
+      title: "Feed posts",
+      subtitle: "Latest scrape",
+      icon: <XLogo className="size-4" />,
+      active: context.posts,
+    },
+    {
+      id: "summary",
+      title: "Summary",
+      subtitle: "Latest summary",
+      icon: <Article className="size-4" />,
+      active: context.summary,
+    },
+  ];
+
+  return (
+    <div className="rounded-card border bg-background p-6">
+      <div
+        data-state="open"
+        className="group/panel mx-auto flex w-full max-w-md flex-col gap-4 rounded-card border bg-card p-4"
+      >
+        <ChatEmptyState onPick={setDraft} disabled={false} />
+        <ChatComposer
+          draft={draft}
+          onDraftChange={setDraft}
+          onSubmit={() => {
+            toast.success(`Sent: ${draft}`);
+            setDraft("");
+          }}
+          cards={cards}
+          onToggleCard={(id) =>
+            setContext((value) => ({ ...value, [id]: !value[id] }))
+          }
+        />
+      </div>
+    </div>
   );
 }
 
@@ -384,10 +440,15 @@ export default function DesignGallery() {
             email="pablo@example.com"
             name="Pablo"
             plan="pro"
-            onOpenSettings={() => toast.info("Settings would open")}
             onRegenerate={() => toast.success("Re-generate pressed")}
+            onToggleChat={() => toast.info("Chat panel would toggle")}
+            chatOpen={false}
           />
         </div>
+      </Section>
+
+      <Section title="AI chat">
+        <ChatPreview />
       </Section>
 
       <Section title="Plan cards">

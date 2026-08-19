@@ -24,6 +24,8 @@ def chat(
             user.plan,
             [message.model_dump() for message in body.messages],
             credits.as_tuple(),
+            include_posts=body.context.include_posts,
+            include_summary=body.context.include_summary,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

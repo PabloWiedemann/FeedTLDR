@@ -25,18 +25,7 @@ credits_calculator = CreditsCalculator()
 _DEMO_SCRAPE_PATH = "users/default/latest/raw_scraped_tweets.csv"
 
 
-def _load_context(uid: str) -> str:
-    """The model sees the raw posts and the rendered summary, in that order."""
-    user_data = (
-        utils_firebase.get_specific_user_data(
-            uid, [FIELD_SUMMARY_HTML, FIELD_RAW_DATA_SOURCES]
-        )
-        or {}
-    )
-    summary_html = user_data.get(FIELD_SUMMARY_HTML) or ""
-    sources = user_data.get(FIELD_RAW_DATA_SOURCES) or []
-    scrape_path = sources[0] if sources else _DEMO_SCRAPE_PATH
-
+def _load_posts(scrape_path: str) -> str:
     with tempfile.TemporaryDirectory() as temp_dir:
         local_path = os.path.join(temp_dir, "raw_scraped_tweets.csv")
         if not utils_firebase.download_raw_X_data_from_firestore(
@@ -45,10 +34,33 @@ def _load_context(uid: str) -> str:
             raise LookupError("Failed to download feed data for chat context")
         posts = preprocess_X_data(local_path)
 
-    posts = truncate_prompt(
+    return truncate_prompt(
         posts, model=CHAT_MODEL, max_context_length=CHAT_MAX_CONTEXT_TOKENS
     )
-    return f"{CHAT_CONTEXT_PROMPT} \n\n {posts} \n\n {summary_html}"
+
+
+def _load_context(uid: str, include_posts: bool, include_summary: bool) -> str:
+    """The model sees the raw posts and the rendered summary, in that order.
+
+    The user can drop either part from the composer's context cards; a
+    dropped part is never fetched.
+    """
+    fields = []
+    if include_summary:
+        fields.append(FIELD_SUMMARY_HTML)
+    if include_posts:
+        fields.append(FIELD_RAW_DATA_SOURCES)
+    user_data = (
+        utils_firebase.get_specific_user_data(uid, fields) or {} if fields else {}
+    )
+
+    parts = [CHAT_CONTEXT_PROMPT]
+    if include_posts:
+        sources = user_data.get(FIELD_RAW_DATA_SOURCES) or []
+        parts.append(_load_posts(sources[0] if sources else _DEMO_SCRAPE_PATH))
+    if include_summary:
+        parts.append(user_data.get(FIELD_SUMMARY_HTML) or "")
+    return " \n\n ".join(parts)
 
 
 def _record_usage(uid: str, plan: str, response) -> None:
@@ -75,7 +87,12 @@ def _record_usage(uid: str, plan: str, response) -> None:
 
 
 def chat_completion(
-    uid: str, plan: str, messages: list[dict], credit_state: tuple[int, int, int, int]
+    uid: str,
+    plan: str,
+    messages: list[dict],
+    credit_state: tuple[int, int, int, int],
+    include_posts: bool = True,
+    include_summary: bool = True,
 ) -> str:
     """Answer one question about the user's feed, charging a credit for it."""
     monthly_left, prepaid_left, monthly_limit, prepaid_limit = credit_state
@@ -85,7 +102,12 @@ def chat_completion(
 
     utils_firebase.reserve_credit_usage(uid, plan, cost, monthly_limit, prepaid_limit)
 
-    conversation = [{"role": "developer", "content": _load_context(uid)}] + [
+    conversation = [
+        {
+            "role": "developer",
+            "content": _load_context(uid, include_posts, include_summary),
+        }
+    ] + [
         {"role": message["role"], "content": message["content"]} for message in messages
     ]
 

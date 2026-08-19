@@ -6,6 +6,7 @@ import { track } from "@/lib/analytics";
 import { api, unwrap } from "./client";
 import { queryKeys } from "./query-keys";
 import type {
+  ChatContext,
   ChatMessage,
   ChatResponse,
   ImportAccounts,
@@ -84,6 +85,16 @@ export function useRemoveAccount() {
   });
 }
 
+export function useClearAccounts() {
+  const invalidate = useInvalidator();
+  return useMutation({
+    mutationFn: async () =>
+      unwrap(await api.DELETE("/v1/settings/accounts")),
+    onSuccess: () => invalidate([queryKeys.accounts]),
+    onError: toastError,
+  });
+}
+
 export function useVerifyAccounts() {
   const invalidate = useInvalidator();
   return useMutation({
@@ -150,8 +161,8 @@ export function useUpdateMe() {
 export function useChat() {
   const invalidate = useInvalidator();
   return useMutation({
-    mutationFn: async (messages: ChatMessage[]) =>
-      unwrap<ChatResponse>(await api.POST("/v1/chat", { body: { messages } })),
+    mutationFn: async (body: { messages: ChatMessage[]; context?: ChatContext }) =>
+      unwrap<ChatResponse>(await api.POST("/v1/chat", { body })),
     onSuccess: () => invalidate([queryKeys.me]),
     onError: toastError,
   });

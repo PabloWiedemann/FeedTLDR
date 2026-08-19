@@ -29,7 +29,7 @@ Reach for these instead of arbitrary values:
 | radius | `rounded-full` (interactive) / `rounded-card` (containers) / `rounded-field` (inputs) |
 | type | `text-display-xl` / `text-display-lg` / `text-heading` / `text-title` / `text-section` |
 | easing | `ease-brand` |
-| settings sheet width | `max-w-sheet` |
+| sheet width | `max-w-sheet` |
 | prose measure | `max-w-prose` |
 | balanced / pretty text | `text-balance` / `text-pretty` (never `style={{ textWrap }}`) |
 

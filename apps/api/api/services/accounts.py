@@ -72,6 +72,14 @@ def remove_account(uid: str, handle: str) -> list[str]:
     return accounts
 
 
+def clear_accounts(uid: str) -> list[str]:
+    """Empty the followed-accounts list (and its verified subset)."""
+    utils_firebase.update_data_firestore_DB(
+        uid, {FIELD_ACCOUNTS: [], FIELD_VERIFIED_ACCOUNTS: []}
+    )
+    return []
+
+
 def verify_accounts(uid: str) -> dict:
     """Check the not-yet-verified handles against X via Apify."""
     accounts, verified = _load(uid)

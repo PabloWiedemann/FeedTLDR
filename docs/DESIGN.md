@@ -37,7 +37,8 @@ Warm bone canvas, white cards, near-black ink, and one green accent family used 
 | `--primary-hover` | `oklch(0.82 0.15 156)` | Hover goes more vivid, never grey |
 | `--btn-border` | `color-mix(45% accent-foreground, primary)` | Darker-green outline on filled buttons |
 | `--accent` | `oklch(0.935 0.04 158)` | THE hover wash + `::selection` + icon-chip fill |
-| `--accent-foreground` / `--link` / `--ring` | `oklch(0.33 0.06 155)` | Deep forest: links, focus rings, accent icons |
+| `--accent-foreground` / `--link` | `oklch(0.33 0.06 155)` | Deep forest: links, accent icons |
+| `--ring` | `var(--foreground)` | Focus ring: thin crisp ink (1.5px at 100%), never a washed green halo |
 | `--logo` | `var(--foreground)` | Brand mark tint — always ink, never green |
 | `--destructive` | `oklch(0.4755 0.1483 25.66)` | Destructive actions, error text (`#9F2F2D`) |
 
@@ -88,8 +89,8 @@ Tailwind's default `shadow-xs/sm/md/lg/xl` are banned and fail `pnpm check:token
 
 ## 5. Spacing & layout
 
-- Spacing scale: Tailwind default (4px base). Section rhythm on marketing pages: `py-24`–`py-32`. App pages: `py-10`–`py-16`.
-- Content containers: marketing `max-w-5xl` (nav, main, footer share the one column), app content column `max-w-4xl` (bar and content on one grid), settings sheet `max-w-sheet` (520px, `--container-sheet`), prose `max-w-prose`.
+- Spacing scale: Tailwind's 4px grid. Use only whole-grid spacing tokens whose resolved values are multiples of 4px (`p-1`, `gap-2`, `py-3`); fractional steps such as `0.5`, `1.5`, and `2.5` are not allowed in new work. If the scale does not cover a spacing role, add a named token in `globals.css` and document it here instead of using an arbitrary value. Section rhythm on marketing pages: `py-24`–`py-32`. App pages: `py-10`–`py-16`.
+- Content containers: marketing `max-w-5xl` (nav, main, footer share the one column), app content column `max-w-4xl` (bar and content on one grid), sheets `max-w-sheet` (640px, `--container-sheet`), prose `max-w-prose`.
 - Marketing header: sticky glass bar — `bg-background/70` + `backdrop-blur-md backdrop-saturate-150` + `border-b border-border/70` hairline; content scrolls beneath it.
 - Layout margins: ≥16px inline on mobile; controls never touch viewport edges; media may bleed.
 - Alignment: app pages left-aligned. Landing hero is a centered stack (headline, subhead, CTA) over a bento grid: the summary preview card spans two thirds, three feature tiles stack beside it, collapsing to single column under `lg`.
@@ -105,6 +106,7 @@ Quiet and functional. Easing is one token, `ease-brand` (`cubic-bezier(0.16, 1, 
 - CTA buttons carry a trailing arrow that nudges 2px right on hover (`group-hover:translate-x-0.5`), and the button itself lifts half a step.
 - Enter/exit: sheet slides from left 300ms; dialog fade+scale from 0.98; exits softer than enters, small fixed `translateY`, `ease-out`.
 - Staggered reveals: marketing sections and feed sections fade in `translateY(12px)`, 80ms stagger, `IntersectionObserver` or Motion `whileInView`, `viewport={{ once: true }}`.
+- Chat panel: desktop open animates the column width (300ms `ease-brand`) while the floating card slides in from the right; mobile fades up as an overlay. Panel content (messages/empty state, composer) staggers in 80ms steps off the panel's `data-state`. Starter-question cards straighten from their resting tilt and lift on hover (200ms, `transition-[rotate,translate,scale,box-shadow]`). Width transitions are suspended while the user drags the resize handle.
 - Icon state changes cross-fade (opacity 0→1, scale 0.25→1, blur 4px→0), spring `duration 0.3, bounce 0`.
 - Generation progress: the stage list animates state changes; no infinite loops besides the active-stage indicator and audio-playing state.
 - Restraint: no custom animation on high-frequency interactions; every animated state change also has a static cue. All motion honors `prefers-reduced-motion` (collapse to instant). No `window.addEventListener('scroll')`; no marquees; max one decorative animation per page.
@@ -119,20 +121,24 @@ Base primitives via `npx shadcn@latest add`, then restyled through tokens (never
 
 | Component | Base | Notes |
 | --- | --- | --- |
-| `Button` | shadcn button + CVA | Variants: `default` (mint fill, ink text, `--btn-border` outline), `tonal` (accent wash + thin ink border, fills mint on hover), `outline`, `secondary`, `ghost`, `destructive`, `link`, icon sizes. Hover washes use `--accent`. Press scale 0.96 |
-| `GlassHeader` | custom | The sticky glass bar shared by `MarketingNav` and `AppBar`; `className` sets the container width |
+| `Button` | shadcn button + CVA | Variants: `default` (mint fill, ink text, `--btn-border` outline), `tonal` (accent wash + thin ink border, fills mint on hover), `outline` (white fill, thin ink border), `secondary`, `ghost`, `destructive`, `link`, icon sizes. Hover washes use `--accent`. Disabled is neutral: `bg-muted` + muted text, never faded green. Press scale 0.96 |
+| `GlassHeader` | custom | The sticky glass bar shared by `MarketingNav` (hairline edge) and `AppBar` (`bordered={false}`, no hairline); `className` sets the container width |
 | `AppBar` | custom | On `GlassHeader`: settings icon-button left; Re-generate primary + AI chat outline + Avatar right (labels collapse to icons under `sm`). Avatar shows the Google `photoURL` when present, else initials |
 | `MarketingNav` | custom | Sticky glass bar (§5). Logo left; Pricing + auth-aware `NavAuthButton` right ("Your brief" when signed in, "Log in" otherwise, both `tonal`); ≤72px tall |
 | `SummaryPreview` | custom (landing) | Hero product card: dated brief with decorative Play pill and `SummaryProse` sample, borderless on `shadow-card` |
 | `Footer` | custom | Copyright + legal links |
 | `Card` | shadcn card | 24px radius, border, no shadow |
-| `Sheet` | shadcn sheet | Settings panel, `side="left"`, white on cream, overlay scrim `rgba(28,27,24,0.45)` |
-| `Dialog` | shadcn dialog | Generate options, confirmations |
+| `Sheet` | shadcn sheet | Available primitive (mobile drawers); settings moved to `SettingsDialog` |
+| `SettingsNav` + settings cards | custom (`components/feedtldr/settings/`) | Settings is a page (`/app/settings/*`): flat full-height nav panel (w-72, border, no shadow, 8px inset from the viewport, sticky; groups "Your account" / "Your summary"; base-size pill items) beside the content column; "Back to summary" lives in the content column, not the panel. Sections are bordered soft-shadow cards. Mobile: horizontal pill strip |
+| `ChatPanel` | custom | Persistent right side panel on `/app` (full-screen under `lg`), Dia-style: a floating white `rounded-card` with a 1px `--border` stroke (no shadow) spanning the full viewport height (8px insets), sitting beside the whole app column — opening it pushes the app bar and summary left together. Default 448px wide, drag-resizable 380–600px via the handle on its left edge (double-click resets; arrow keys resize). Header w/ credits + clear + close, user messages as mint bubbles, assistant replies as plain prose. Kept mounted while closed so the conversation survives reopening |
+| `ChatComposer` | custom (part of ChatPanel) | Floating white card (`rounded-card` + `shadow-card`, hairline border that darkens on input focus): context cards row above a borderless input, plus-menu (DropdownMenu checkboxes) to add/remove context, round mint send. Context cards are `bg-secondary` `rounded-xl` chips w/ icon tile + two-line label; hover/focus reveals a remove button |
+| `ChatEmptyState` | custom (part of ChatPanel) | A loose stack of tilted starter-question cards (`shadow-card`, alternating ±2–3° tilts, slight overlap); hover/focus straightens and lifts a card (`shadow-card-hover`), click drops its question into the composer. One-line title + subline below |
+| `Dialog` | shadcn dialog | Generate options, confirmations; white (`bg-card`) on the scrim |
 | `Input`, `Textarea`, `Select` | shadcn | 12px radius, cream fill on white cards, visible focus ring |
 | `Field` | shadcn field | Label + control + description + error. Every form field uses it; no hand-rolled `grid gap-2` |
 | `Table` | shadcn table | Source-data rows |
 | `ToggleGroup` | shadcn toggle-group | Segmented pills (billing interval) |
-| `TagInput` | custom (Input + Badge) | X-account chips: type, Enter to add, X to remove, paste-splits on commas |
+| `TagInput` | custom (Input + Badge) | X-account chips: type, Enter to add, X to remove, paste-splits on commas; chip list caps at `max-h-64` and scrolls under an optional glassy sticky `listFooter` (verify when unverified handles exist / import / clear-with-inline-confirm) |
 | `AccountsField` | custom | TagInput + plan-limit notice, plus `VerifyAccountsButton` and `ImportAccountsDialog`. Shared by the settings sheet and onboarding |
 | `AccountChip` | Badge | Handle + verification state (pastel semantics §2) |
 | `Notice` | custom | Inline message block, tones info/warning/success/error, filled or plain. The only pastel surface |
@@ -164,19 +170,19 @@ Every component ships with: hover, focus-visible, active, disabled, loading, and
 ## 9. Page specs
 
 - **Landing `/`** — sticky glass MarketingNav; centered hero (display-xl in `font-display`, ≤2 lines on desktop, subhead ≤25 words, "Get your first brief" primary pill + "Free to start" note); bento grid (SummaryPreview two-thirds + inbox/chat/listen tiles with neutral icon chips); below the fold only a slim 3-step strip and a closing CTA; footer. Source links inside summary prose render as icon pills (`.summary-prose` styles).
-- **Feed `/app`** — sticky glass AppBar; one flat white card holding "Today's Feed" (display-lg), "Generated on …" muted with user-timezone formatting, AudioPill, and the summary prose (no dividers — whitespace separates sections; PostHoverPreviews on source links). Below it, a quiet "Source data" disclosure card (StatCards + Charts + DataTable, fetched on open; hidden for demo feeds). States: demo (banner + demo summary), generating (GenerationProgress card), error (inline with retry), empty-scrape (explain + link to settings).
-- **Settings sheet** (over `/app`) — three white cards per mock 3: Accounts (TagInput + verify + import-followees popover), Newsletter email (EmailChipList + subscribe), AI prompt (ThemePicker + textarea); timezone select; Re-generate primary at bottom. Inline validation below fields; plan-limit notices with upgrade link.
+- **Feed `/app`** — sticky glass AppBar; one flat white card holding "Today's Feed" (display-lg), "Generated on …" muted with user-timezone formatting, AudioPill, and the summary prose (no dividers — whitespace separates sections; PostHoverPreviews on source links). Below it, a quiet "Source data" disclosure card (StatCards + Charts + DataTable, fetched on open; hidden for demo feeds). States: demo (banner + demo summary), generating (GenerationProgress card), error (inline with retry), empty-scrape (explain + link to settings). Anything that fetches shows a shape-matched Skeleton, never a pop-in.
+- **Settings `/app/settings/*`** — floating sidebar nav (groups: Your account -> Profile, Billing; Your summary -> Accounts, AI prompt, Daily email) beside a `max-w-2xl` content column. Profile: details + danger zone. Billing: plan/credits + period usage. Accounts: TagInput with verify/import/clear on the glassy footer. AI prompt: textarea, save appears only when changed. Daily email: subscription-aware control (Subscribed label / Update / Subscribe, fixed-width slot) + timezone card. Inline validation below fields; plan-limit notices with upgrade link.
 - **Generate dialog** — fetch-latest toggle vs re-summarize, theme/prompt, CreditBadge cost preview, Generate primary; disabled states explain why (no accounts / none verified / insufficient credits).
 - **Auth `/login` `/signup`** — single centered card on cream, logo, email+password + Google button, plain error copy; password requirements as helper list.
 - **Onboarding `/onboarding`** — 3 steps (add accounts → verify → newsletter email), OnboardingSteps progress, skippable where safe.
-- **Chat `/app/chat`** — message list + composer, credits per message noted, feed-context indicator, clear-chat.
+- **Chat** — persistent right side panel on `/app` (no separate route): a full-height floating white rounded card beside the app column — opening it pushes the app bar and summary content left together on desktop (drag-resizable width); full-screen sheet on mobile; message list + composer with context cards, credits per message noted, clear-chat, closable at any time with history kept while on the page.
 - **Pricing `/pricing`** — PricingCards from plan config; current plan + usage meters for signed-in users; checkout/portal via API.
 - **Profile** (menu from Avatar) — name edit, plan + credits, manage subscription (portal), logout, delete account (typed confirmation dialog).
 - **Legal** `/terms`, `/privacy`, `/imprint`, `/about`, `/contact` — prose pages, `max-w-[65ch]`.
 
 ## 10. Accessibility baseline
 
-Enabled buttons and `role="button"` elements show the pointer cursor (base rule in `globals.css`); disabled ones keep the default cursor. Focus-visible rings on every interactive element via the `focus-ring` utility (`--ring-width` at `--ring-opacity` of `--ring`) — one definition, never re-stated per component. Hit areas ≥40px. Labels above inputs, errors below, no placeholder-as-label. Landmarks + skip link in app shell. Sheet/dialog trap focus and restore on close. Audio player fully keyboard-operable. Contrast: all text AA minimum (this is why `--link` is darker than the mock; verify chips' pastel text pairs). `prefers-reduced-motion` respected globally. Charts get text alternatives (StatCards carry the numbers).
+Enabled buttons and `role="button"` elements show the pointer cursor (base rule in `globals.css`); disabled ones keep the default cursor. Focus-visible rings on every interactive element via the `focus-ring` utility (`--ring-width` 1.5px of ink `--ring` at 100%) — one definition, never re-stated per component. Hit areas ≥40px. Labels above inputs, errors below, no placeholder-as-label. Landmarks + skip link in app shell. Sheet/dialog trap focus and restore on close. Audio player fully keyboard-operable. Contrast: all text AA minimum (this is why `--link` is darker than the mock; verify chips' pastel text pairs). `prefers-reduced-motion` respected globally. Charts get text alternatives (StatCards carry the numbers).
 
 ## 11. Anti-slop checklist (pre-merge, every UI PR)
 

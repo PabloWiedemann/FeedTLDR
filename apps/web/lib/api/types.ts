@@ -12,6 +12,7 @@ export type PlansResponse = components["schemas"]["PlansResponse"];
 export type Plan = components["schemas"]["PlanPublic"];
 export type BillingUsage = components["schemas"]["BillingUsageResponse"];
 export type ChatMessage = components["schemas"]["ChatMessage"];
+export type ChatContext = components["schemas"]["ChatContext"];
 export type ChatResponse = components["schemas"]["ChatResponse"];
 export type CreditState = components["schemas"]["CreditState"];
 export type VerifyAccounts = components["schemas"]["VerifyAccountsResponse"];

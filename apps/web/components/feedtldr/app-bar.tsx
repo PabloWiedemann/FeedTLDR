@@ -11,6 +11,7 @@ import {
   User,
 } from "@phosphor-icons/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,15 +35,17 @@ export function AppBar({
   email,
   name,
   plan,
-  onOpenSettings,
   onRegenerate,
+  onToggleChat,
+  chatOpen,
   regenerateDisabled,
 }: {
   email: string;
   name?: string;
   plan?: string;
-  onOpenSettings: () => void;
   onRegenerate: () => void;
+  onToggleChat: () => void;
+  chatOpen: boolean;
   regenerateDisabled?: boolean;
 }) {
   const router = useRouter();
@@ -56,14 +59,11 @@ export function AppBar({
       .join("") || "?";
 
   return (
-    <GlassHeader className="max-w-4xl">
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={onOpenSettings}
-        aria-label="Open settings"
-      >
-        <Faders />
+    <GlassHeader className="max-w-4xl" bordered={false}>
+      <Button asChild variant="outline" size="icon">
+        <Link href="/app/settings" aria-label="Open settings">
+          <Faders />
+        </Link>
       </Button>
       <div className="flex items-center gap-2 sm:gap-3">
         <Button
@@ -74,11 +74,14 @@ export function AppBar({
           <ArrowsClockwise />
           <span className="hidden sm:inline">Re-generate</span>
         </Button>
-        <Button asChild variant="outline">
-          <Link href="/app/chat" aria-label="Open AI chat">
-            <ChatCircleDots />
-            <span className="hidden sm:inline">AI chat</span>
-          </Link>
+        <Button
+          variant="outline"
+          onClick={onToggleChat}
+          aria-label={chatOpen ? "Close AI chat" : "Open AI chat"}
+          aria-pressed={chatOpen}
+        >
+          <ChatCircleDots />
+          <span className="hidden sm:inline">AI chat</span>
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -94,25 +97,37 @@ export function AppBar({
               </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-52">
-            <DropdownMenuLabel className="flex min-w-0 flex-col gap-1">
-              <span className="truncate">{name || email}</span>
+          <DropdownMenuContent align="end" className="min-w-60 p-2">
+            <DropdownMenuLabel className="flex min-w-0 flex-col gap-2 px-3 py-3">
+              <div className="flex min-w-0 flex-col gap-1">
+                <span className="truncate">{name || email}</span>
+                {name && (
+                  <span className="truncate text-xs font-normal text-muted-foreground">
+                    {email}
+                  </span>
+                )}
+              </div>
               {plan && (
-                <span className="text-xs font-normal text-muted-foreground">
-                  {accountPlanLabel(plan)}
-                </span>
+                <Badge className="py-1">{accountPlanLabel(plan)}</Badge>
               )}
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => router.push("/profile")}>
-              <User /> Profile
+            <DropdownMenuSeparator className="mx-0 my-2" />
+            <DropdownMenuItem
+              className="px-3 py-2"
+              onSelect={() => router.push("/app/settings/profile")}
+            >
+              <User /> Profile settings
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => router.push("/pricing")}>
+            <DropdownMenuItem
+              className="px-3 py-2"
+              onSelect={() => router.push("/app/settings/billing")}
+            >
               <CreditCard /> Plan &amp; credits
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="mx-0 my-2" />
             <DropdownMenuItem
               variant="destructive"
+              className="px-3 py-2"
               onSelect={async () => {
                 await logout();
                 router.push("/");

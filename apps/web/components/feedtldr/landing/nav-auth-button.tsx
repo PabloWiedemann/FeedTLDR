@@ -4,28 +4,25 @@ import Link from "next/link";
 import { ArrowRight } from "@phosphor-icons/react";
 import { useAuth } from "@/components/providers";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
-/** Signed-in visitors jump to their brief; everyone else logs in. */
+/** Signed-in visitors jump to their summary; everyone else logs in. */
 export function NavAuthButton() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <Button variant="tonal" className="invisible" aria-hidden="true">
-        Log in
-      </Button>
-    );
+    return <Skeleton className="h-10 w-24 rounded-full" />;
   }
 
   return user ? (
-    <Button asChild variant="tonal" className="group">
+    <Button asChild className="group">
       <Link href="/app">
-        Your brief{" "}
+        Your summary{" "}
         <ArrowRight className="transition-transform duration-200 ease-brand group-hover:translate-x-0.5" />
       </Link>
     </Button>
   ) : (
-    <Button asChild variant="tonal">
+    <Button asChild>
       <Link href="/login">Log in</Link>
     </Button>
   );

@@ -42,9 +42,10 @@
   --destructive-foreground: oklch(1 0 0);
   --border: oklch(0.924 0.007 140);
   --input: oklch(0.924 0.007 140);
-  /* deep forest: links, focus rings, accent icons (on a chip) */
-  --ring: oklch(0.33 0.06 155);
+  /* deep forest: links, accent icons (on a chip) */
   --link: oklch(0.33 0.06 155);
+  /* focus ring: thin crisp ink, minimal (never the washed green halo) */
+  --ring: var(--foreground);
   /* brand mark renders in the ink color, never green */
   --logo: var(--foreground);
   /* filled-button outline: darker green of the primary fill */
@@ -70,8 +71,8 @@
   --radius: 0.75rem;
 
   /* focus ring, one width everywhere (DESIGN.md §10) */
-  --ring-width: 3px;
-  --ring-opacity: 45%;
+  --ring-width: 1.5px;
+  --ring-opacity: 100%;
 
   /* press feedback, exactly 0.96 (DESIGN.md §6) */
   --press-scale: 0.96;
@@ -177,7 +178,7 @@
   --text-section--font-weight: 600;
 
   /* content widths (DESIGN.md §5) */
-  --container-sheet: 32.5rem; /* settings sheet */
+  --container-sheet: 40rem; /* sheets and drawers */
   --container-prose: 65ch; /* summary + legal measure */
 }
 

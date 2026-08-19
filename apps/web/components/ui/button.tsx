@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 
 // FeedTLDR shape system: every button is a pill (DESIGN.md §4).
 const buttonVariants = cva(
-  "focus-ring press inline-flex shrink-0 items-center justify-center gap-2 rounded-full text-sm font-medium whitespace-nowrap transition-[background-color,border-color,color,scale,translate] duration-150 ease-brand disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "focus-ring press inline-flex shrink-0 items-center justify-center gap-2 rounded-full text-sm font-medium whitespace-nowrap transition-[background-color,border-color,color,scale,translate] duration-150 ease-brand disabled:pointer-events-none disabled:border-transparent disabled:bg-muted disabled:text-muted-foreground aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
@@ -15,13 +15,13 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "border border-foreground/25 bg-transparent text-foreground hover:border-foreground/60 hover:bg-accent",
+          "border border-foreground/25 bg-card text-foreground hover:border-foreground/60 hover:bg-accent",
         secondary: "bg-secondary text-secondary-foreground hover:bg-accent",
         // soft accent wash with a thin ink border; fills on hover
         tonal:
           "border border-foreground/25 bg-accent text-foreground hover:border-btn-border hover:bg-primary",
-        ghost: "text-foreground hover:bg-accent",
-        link: "text-link underline-offset-4 hover:underline active:scale-100",
+        ghost: "text-foreground hover:bg-accent disabled:bg-transparent",
+        link: "text-link underline-offset-4 hover:underline active:scale-100 disabled:bg-transparent",
       },
       size: {
         default: "h-10 px-5 has-[>svg]:px-4",
