@@ -48,7 +48,7 @@ const TILES = [
   {
     icon: <EnvelopeSimple className="size-6" />,
     title: "In your inbox at 7am",
-    body: "Get the brief as an email, ready with your coffee.",
+    body: "Get the summary as an email, ready with your coffee.",
   },
   {
     icon: <ChatCircleDots className="size-6" />,
@@ -58,7 +58,7 @@ const TILES = [
   {
     icon: <SpeakerHigh className="size-6" />,
     title: "Listen on the go",
-    body: `Every brief comes with audio. Today's is ${SAMPLE_BRIEF.audioDuration} long.`,
+    body: `Every summary comes with audio. Today's is ${SAMPLE_BRIEF.audioDuration} long.`,
   },
 ];
 

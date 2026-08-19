@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DownloadSimple, SealCheck } from "@phosphor-icons/react";
+import { DownloadSimple, SealCheck, Trash } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,6 +17,7 @@ import { TagInput, type TagItem } from "./tag-input";
 import { useAccounts } from "@/lib/api/queries";
 import {
   useAddAccounts,
+  useClearAccounts,
   useImportFollowees,
   useRemoveAccount,
   useVerifyAccounts,
@@ -41,8 +42,47 @@ function useAccountTags(enabled: boolean) {
   };
 }
 
+/** Clears the whole list; asks once inline before it deletes anything. */
+function ClearAccountsButton({ count }: { count: number }) {
+  const clearAccounts = useClearAccounts();
+  const [confirming, setConfirming] = useState(false);
+
+  if (count === 0) return null;
+
+  return (
+    <Button
+      type="button"
+      variant={confirming ? "destructive" : "outline"}
+      size="sm"
+      onClick={() => {
+        if (!confirming) {
+          setConfirming(true);
+          return;
+        }
+        clearAccounts.mutate();
+        setConfirming(false);
+      }}
+      onBlur={() => setConfirming(false)}
+      disabled={clearAccounts.isPending}
+    >
+      {clearAccounts.isPending ? <Spinner /> : <Trash />}
+      {confirming ? `Really clear ${count} accounts?` : "Clear list"}
+    </Button>
+  );
+}
+
 /** Chip input for the X accounts to follow, with the plan limit made visible. */
-export function AccountsField({ enabled = true }: { enabled?: boolean }) {
+export function AccountsField({
+  enabled = true,
+  withActions = false,
+  listClassName,
+}: {
+  enabled?: boolean;
+  /** Pin verify/import/clear actions under the chip list (settings). */
+  withActions?: boolean;
+  /** Overrides the chip list's max height (see TagInput). */
+  listClassName?: string;
+}) {
   const { items, maxAccounts, atLimit } = useAccountTags(enabled);
   const addAccounts = useAddAccounts();
   const removeAccount = useRemoveAccount();
@@ -55,6 +95,16 @@ export function AccountsField({ enabled = true }: { enabled?: boolean }) {
         onAdd={(values) => addAccounts.mutate(values)}
         onRemove={(value) => removeAccount.mutate(value)}
         disabled={disabled}
+        listClassName={listClassName}
+        listFooter={
+          withActions ? (
+            <>
+              <VerifyAccountsButton enabled={enabled} />
+              <ImportAccountsDialog />
+              <ClearAccountsButton count={items.length} />
+            </>
+          ) : undefined
+        }
       />
       {atLimit && (
         <Notice tone="warning" className="text-xs">
@@ -66,10 +116,12 @@ export function AccountsField({ enabled = true }: { enabled?: boolean }) {
   );
 }
 
-/** Checks unverified handles against X. Idle once everything is verified. */
+/** Checks unverified handles against X. Gone once everything is verified. */
 export function VerifyAccountsButton({ enabled = true }: { enabled?: boolean }) {
   const { unverifiedCount } = useAccountTags(enabled);
   const verifyAccounts = useVerifyAccounts();
+
+  if (unverifiedCount === 0 && !verifyAccounts.isPending) return null;
 
   return (
     <Button
@@ -77,11 +129,10 @@ export function VerifyAccountsButton({ enabled = true }: { enabled?: boolean }) 
       variant="outline"
       size="sm"
       onClick={() => verifyAccounts.mutate()}
-      disabled={verifyAccounts.isPending || unverifiedCount === 0}
+      disabled={verifyAccounts.isPending}
     >
       {verifyAccounts.isPending ? <Spinner /> : <SealCheck />}
-      Verify accounts
-      {unverifiedCount > 0 ? ` (${unverifiedCount})` : ""}
+      Verify accounts ({unverifiedCount})
     </Button>
   );
 }
@@ -114,10 +165,11 @@ export function ImportAccountsDialog() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Import accounts</DialogTitle>
+            <DialogTitle>Import the accounts someone follows</DialogTitle>
             <DialogDescription>
-              Add every account that a given X account follows. One account at a
-              time.
+              Type one X account, for example your own. We find every account
+              it follows and add them to your list. Your daily summary
+              is created from the posts of the accounts on that list.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3">

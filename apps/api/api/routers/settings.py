@@ -76,6 +76,12 @@ def add_accounts(
     return get_accounts(user)
 
 
+@router.delete("/accounts", response_model=schemas.AccountsResponse)
+def clear_accounts(user: UserContext = Depends(get_user_context)):
+    services.clear_accounts(user.uid)
+    return get_accounts(user)
+
+
 @router.delete("/accounts/{handle}", response_model=schemas.AccountsResponse)
 def delete_account(handle: str, user: UserContext = Depends(get_user_context)):
     services.remove_account(user.uid, handle)

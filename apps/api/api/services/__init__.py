@@ -10,6 +10,7 @@ from api.services.accounts import (
     import_followees,
     normalize_handle,
     normalize_handles,
+    clear_accounts,
     remove_account,
     verify_accounts,
 )
@@ -36,6 +37,7 @@ __all__ = [
     "import_followees",
     "normalize_handle",
     "normalize_handles",
+    "clear_accounts",
     "remove_account",
     "sanitize_summary_html",
     "start_generation",

@@ -315,7 +315,8 @@ export interface paths {
         put?: never;
         /** Add Accounts */
         post: operations["add_accounts_v1_settings_accounts_post"];
-        delete?: never;
+        /** Clear Accounts */
+        delete: operations["clear_accounts_v1_settings_accounts_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -408,6 +409,22 @@ export interface components {
             plan: string;
             usage: components["schemas"]["UsageCounts"];
         };
+        /**
+         * ChatContext
+         * @description Which feed data the model sees; drives the composer's context cards.
+         */
+        ChatContext: {
+            /**
+             * Include Posts
+             * @default true
+             */
+            include_posts: boolean;
+            /**
+             * Include Summary
+             * @default true
+             */
+            include_summary: boolean;
+        };
         /** ChatMessage */
         ChatMessage: {
             /** Content */
@@ -417,6 +434,7 @@ export interface components {
         };
         /** ChatRequest */
         ChatRequest: {
+            context?: components["schemas"]["ChatContext"];
             /** Messages */
             messages: components["schemas"]["ChatMessage"][];
         };
@@ -840,6 +858,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -910,6 +929,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -965,6 +985,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -996,6 +1017,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1027,6 +1049,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1082,6 +1105,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1113,6 +1137,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1144,6 +1169,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1182,6 +1208,7 @@ export interface operations {
             };
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1213,6 +1240,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1244,6 +1272,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1275,6 +1304,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1306,6 +1336,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1341,6 +1372,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1372,6 +1404,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1407,6 +1440,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1438,6 +1472,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1468,11 +1503,44 @@ export interface operations {
             };
         };
     };
+    clear_accounts_v1_settings_accounts_delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     import_accounts_v1_settings_accounts_import_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1508,6 +1576,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1539,6 +1608,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path: {
                 handle: string;

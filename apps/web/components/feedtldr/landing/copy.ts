@@ -6,8 +6,8 @@
 export const LANDING_COPY = {
   headline: "Your feed, summarized every morning",
   subhead:
-    "FeedTLDR reads the accounts you pick and writes one short brief each day. Read it, listen to it, or get it in your inbox.",
-  cta: "Get your first brief",
+    "FeedTLDR reads the accounts you pick and writes one short summary each day. Read it, listen to it, or get it in your inbox.",
+  cta: "Get your first summary",
   ctaNote: "Free to start. No card needed.",
   steps: [
     {
@@ -16,7 +16,7 @@ export const LANDING_COPY = {
     },
     {
       title: "We do the reading",
-      body: "Each morning we turn the last 24 hours of posts into one short brief.",
+      body: "Each morning we turn the last 24 hours of posts into one short summary.",
     },
     {
       title: "Read it or hear it",
@@ -25,13 +25,13 @@ export const LANDING_COPY = {
   ],
   closing: {
     headline: "Stay in the loop in five minutes a day",
-    cta: "Get your first brief",
+    cta: "Get your first summary",
   },
 } as const;
 
-/** Sample brief shown in the hero product card. */
+/** Sample summary shown in the hero product card. */
 export const SAMPLE_BRIEF = {
-  title: "Your morning brief",
+  title: "Your morning summary",
   date: "Monday, August 18",
   meta: "142 posts from 12 accounts",
   audioDuration: "2:47",

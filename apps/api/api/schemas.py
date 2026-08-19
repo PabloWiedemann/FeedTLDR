@@ -212,8 +212,16 @@ class ChatMessage(BaseModel):
     content: str
 
 
+class ChatContext(BaseModel):
+    """Which feed data the model sees; drives the composer's context cards."""
+
+    include_posts: bool = True
+    include_summary: bool = True
+
+
 class ChatRequest(BaseModel):
     messages: list[ChatMessage] = Field(min_length=1)
+    context: ChatContext = Field(default_factory=ChatContext)
 
 
 class ChatResponse(BaseModel):

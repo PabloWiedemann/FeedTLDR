@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { CreditBadge } from "./credit-badge";
 import { Notice } from "./notice";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "./spinner";
 import { useGenerationCost, useSettings } from "@/lib/api/queries";
 import { useStartGeneration } from "@/lib/api/mutations";
@@ -124,10 +125,13 @@ export function GenerateDialog({
                 remaining={creditsLeft(cost.data.credits)}
               />
             ) : (
-              <Spinner
-                label="Calculating cost"
-                className="size-4 text-muted-foreground"
-              />
+              <div
+                className="flex flex-col items-end gap-1.5"
+                aria-label="Calculating cost"
+              >
+                <Skeleton className="h-6 w-24 rounded-full" />
+                <Skeleton className="h-3 w-20" />
+              </div>
             )}
           </div>
 

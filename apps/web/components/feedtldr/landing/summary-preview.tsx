@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { SAMPLE_BRIEF } from "./copy";
 
 /**
- * Hero product card: a dressed-up daily brief (title, date, audio,
+ * Hero product card: a dressed-up daily summary (title, date, audio,
  * summary prose) on a white card with a soft shadow and no border.
  */
 

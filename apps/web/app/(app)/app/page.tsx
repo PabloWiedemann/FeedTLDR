@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppBar } from "@/components/feedtldr/app-bar";
 import { AudioPill } from "@/components/feedtldr/audio-pill";
+import { ChatPanel } from "@/components/feedtldr/chat-panel";
 import { EmptyState } from "@/components/feedtldr/empty-state";
 import { GenerateDialog } from "@/components/feedtldr/generate-dialog";
 import { GenerationProgress } from "@/components/feedtldr/generation-progress";
@@ -19,7 +20,6 @@ import {
   PostHoverPreviews,
   type SourcePost,
 } from "@/components/feedtldr/post-hover-previews";
-import { SettingsSheet } from "@/components/feedtldr/settings-sheet";
 import { SourceDataView } from "@/components/feedtldr/source-data";
 import { SummaryProse } from "@/components/feedtldr/summary-prose";
 import {
@@ -50,7 +50,7 @@ function FeedSkeleton() {
 
 /**
  * Source data demoted to a quiet card row below the summary: it only
- * explains how the brief was made, so it stays folded until asked for.
+ * explains how the summary was made, so it stays folded until asked for.
  */
 function SourceDataDisclosure() {
   const [open, setOpen] = useState(false);
@@ -69,7 +69,7 @@ function SourceDataDisclosure() {
         <span className="flex flex-col gap-0.5">
           <span className="font-medium">Source data</span>
           <span className="text-sm text-muted-foreground text-pretty">
-            The posts and accounts behind this brief.
+            The posts and accounts behind this summary.
           </span>
         </span>
         <CaretDown
@@ -130,6 +130,13 @@ function useTermsAcceptance(accepted: boolean | undefined, onboarded: boolean | 
   }, [accepted, onboarded, router, updateMe]);
 }
 
+/** Chat panel width bounds (px); the user drags the card's left edge. */
+const CHAT_WIDTH = { min: 380, max: 600, default: 448 } as const;
+
+function clampChatWidth(width: number) {
+  return Math.min(CHAT_WIDTH.max, Math.max(CHAT_WIDTH.min, width));
+}
+
 export default function FeedPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -137,8 +144,34 @@ export default function FeedPage() {
   const feed = useFeed();
   const status = useGenerationStatus();
 
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [generateOpen, setGenerateOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatWidth, setChatWidth] = useState<number>(CHAT_WIDTH.default);
+  const [chatResizing, setChatResizing] = useState(false);
+
+  function startChatResize(event: React.PointerEvent) {
+    event.preventDefault();
+    const startX = event.clientX;
+    const startWidth = chatWidth;
+    setChatResizing(true);
+    const onMove = (move: PointerEvent) =>
+      setChatWidth(clampChatWidth(startWidth + startX - move.clientX));
+    const onUp = () => {
+      setChatResizing(false);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  }
+
+  function handleChatResizeKey(event: React.KeyboardEvent) {
+    const step =
+      event.key === "ArrowLeft" ? 24 : event.key === "ArrowRight" ? -24 : 0;
+    if (step === 0) return;
+    event.preventDefault();
+    setChatWidth((width) => clampChatWidth(width + step));
+  }
 
   const generating =
     status.data?.status === "in_progress" && !status.data.end_time;
@@ -174,17 +207,20 @@ export default function FeedPage() {
   }, [me.data, router]);
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <AppBar
-        email={me.data?.email ?? ""}
-        name={me.data?.name}
-        plan={me.data?.plan}
-        onOpenSettings={() => setSettingsOpen(true)}
-        onRegenerate={() => setGenerateOpen(true)}
-        regenerateDisabled={generating}
-      />
+    <div className="flex min-h-dvh overflow-x-clip">
+      {/* The whole app column (bar included) narrows when the chat opens. */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <AppBar
+          email={me.data?.email ?? ""}
+          name={me.data?.name}
+          plan={me.data?.plan}
+          onRegenerate={() => setGenerateOpen(true)}
+          onToggleChat={() => setChatOpen((value) => !value)}
+          chatOpen={chatOpen}
+          regenerateDisabled={generating}
+        />
 
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 pt-8 pb-24 sm:px-6 sm:pt-12">
+        <main className="mx-auto w-full max-w-4xl min-w-0 flex-1 px-4 pt-8 pb-24 sm:px-6 sm:pt-12">
         {feed.isLoading || me.isLoading ? (
           <FeedSkeleton />
         ) : feed.isError ? (
@@ -248,13 +284,56 @@ export default function FeedPage() {
             )}
           </div>
         ) : null}
-      </main>
+        </main>
+      </div>
 
-      <SettingsSheet
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-        onRegenerate={() => setGenerateOpen(true)}
-      />
+      {/* Kept mounted while closed so the conversation survives reopening.
+          Desktop: the panel spans the full viewport height beside the app
+          column (the app bar narrows with the content); the wrapper animates
+          its width so everything eases over while the floating card slides
+          in from the right edge (the root's overflow-x-clip swallows it
+          while closed). The width is user-resizable via the drag handle on
+          the card's left edge. Mobile: a full-screen overlay that fades up. */}
+      <div
+          style={{ "--chat-width": `${chatWidth}px` } as React.CSSProperties}
+          className={cn(
+            "max-lg:contents lg:block lg:shrink-0",
+            !chatResizing && "lg:transition-[width] lg:duration-300 lg:ease-brand",
+            chatOpen ? "lg:w-[var(--chat-width)]" : "lg:w-0"
+          )}
+        >
+          <aside
+            className={cn(
+              "fixed inset-0 z-50 flex h-dvh flex-col bg-card transition-[opacity,translate,visibility] duration-300 ease-brand",
+              "lg:sticky lg:top-0 lg:z-auto lg:h-dvh lg:w-[var(--chat-width)] lg:bg-transparent lg:p-2",
+              chatResizing && "lg:transition-none lg:select-none",
+              chatOpen
+                ? "translate-y-0 opacity-100 lg:translate-x-0"
+                : "invisible translate-y-6 opacity-0 lg:translate-y-0 lg:translate-x-10"
+            )}
+            aria-label="AI chat"
+            aria-hidden={!chatOpen}
+            inert={!chatOpen}
+          >
+            <div className="relative flex h-full min-h-0 flex-col lg:overflow-hidden lg:rounded-card lg:border lg:bg-card">
+              <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} />
+            </div>
+            <div
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="Resize chat panel"
+              aria-valuemin={CHAT_WIDTH.min}
+              aria-valuemax={CHAT_WIDTH.max}
+              aria-valuenow={chatWidth}
+              tabIndex={0}
+              onPointerDown={startChatResize}
+              onDoubleClick={() => setChatWidth(CHAT_WIDTH.default)}
+              onKeyDown={handleChatResizeKey}
+              className="focus-ring absolute inset-y-2 left-0 hidden w-2 cursor-col-resize touch-none rounded-full before:absolute before:inset-y-0 before:left-1/2 before:w-1 before:-translate-x-1/2 before:rounded-full before:bg-border before:opacity-0 before:transition-opacity before:duration-150 before:ease-brand before:content-[''] hover:before:opacity-100 focus-visible:before:opacity-100 active:before:bg-foreground/25 active:before:opacity-100 lg:block"
+            />
+          </aside>
+      </div>
+
       <GenerateDialog
         open={generateOpen}
         onOpenChange={setGenerateOpen}

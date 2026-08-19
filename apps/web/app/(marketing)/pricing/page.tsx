@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { PageHeader } from "@/components/feedtldr/page-header";
 import {
@@ -101,6 +102,9 @@ export default function PricingPage() {
         </div>
       )}
 
+      {user && usage.isLoading && (
+        <Skeleton className="h-40 w-full rounded-card" />
+      )}
       {user && usage.data && <UsageSummary usage={usage.data} />}
     </main>
   );

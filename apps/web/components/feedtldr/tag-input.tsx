@@ -5,6 +5,7 @@ import { Plus } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AccountChip, type AccountState } from "./account-chip";
+import { cn } from "@/lib/utils";
 
 export type TagItem = { value: string; state?: AccountState };
 
@@ -18,12 +19,18 @@ export function TagInput({
   onRemove,
   placeholder = "Enter an account and press Enter (e.g. @elonmusk)",
   disabled,
+  listFooter,
+  listClassName,
 }: {
   items: TagItem[];
   onAdd: (values: string[]) => void;
   onRemove: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  /** Actions pinned under the chip list; chips scroll beneath them on glass. */
+  listFooter?: React.ReactNode;
+  /** Overrides the chip list's max height (defaults to max-h-64). */
+  listClassName?: string;
 }) {
   const [draft, setDraft] = useState("");
 
@@ -62,18 +69,36 @@ export function TagInput({
           <Plus />
         </Button>
       </div>
-      {items.length > 0 && (
-        <ul className="flex flex-wrap gap-2" aria-label="Accounts you follow">
-          {items.map((item) => (
-            <li key={item.value}>
-              <AccountChip
-                handle={item.value}
-                state={item.state ?? "unverified"}
-                onRemove={disabled ? undefined : onRemove}
-              />
-            </li>
-          ))}
-        </ul>
+      {(items.length > 0 || listFooter) && (
+        <div
+          className={
+            items.length > 0
+              ? cn("max-h-64 overflow-y-auto", listClassName)
+              : undefined
+          }
+        >
+          {items.length > 0 && (
+            <ul
+              className="flex flex-wrap gap-2"
+              aria-label="Accounts you follow"
+            >
+              {items.map((item) => (
+                <li key={item.value}>
+                  <AccountChip
+                    handle={item.value}
+                    state={item.state ?? "unverified"}
+                    onRemove={disabled ? undefined : onRemove}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+          {listFooter && (
+            <div className="sticky bottom-0 flex flex-wrap gap-2 bg-card/70 pt-3 backdrop-blur-md">
+              {listFooter}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
