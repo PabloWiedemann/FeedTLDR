@@ -287,7 +287,11 @@ export function ChatPanel({
   const outOfCredits = balance !== null && balance < CHAT_MESSAGE_COST;
 
   useEffect(() => {
-    if (open) inputRef.current?.focus({ preventScroll: true });
+    // Desktop only: on touch devices focusing would pop the keyboard over
+    // the freshly opened panel.
+    if (open && window.matchMedia("(hover: hover)").matches) {
+      inputRef.current?.focus({ preventScroll: true });
+    }
   }, [open]);
 
   const cards: ChatContextCard[] = [
@@ -373,7 +377,10 @@ export function ChatPanel({
         </div>
       </header>
 
-      <div ref={listRef} className="flex-1 overflow-y-auto px-5 py-3">
+      <div
+        ref={listRef}
+        className="flex-1 overflow-y-auto overscroll-contain px-5 py-3"
+      >
         {messages.length === 0 ? (
           <ChatEmptyState
             onPick={(question) => {
@@ -396,7 +403,13 @@ export function ChatPanel({
         )}
       </div>
 
-      <div className={cn(PANEL_REVEAL, "shrink-0 px-4 pb-4 delay-160")}>
+      {/* calc keeps the composer above the iOS home indicator. */}
+      <div
+        className={cn(
+          PANEL_REVEAL,
+          "shrink-0 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] delay-160"
+        )}
+      >
         {outOfCredits && (
           <Notice role="status" tone="warning" filled className="mb-3">
             You have used the credits available for another chat message. Your

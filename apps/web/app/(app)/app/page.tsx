@@ -17,9 +17,9 @@ import { GenerationProgress } from "@/components/feedtldr/generation-progress";
 import { Notice } from "@/components/feedtldr/notice";
 import { PageHeader } from "@/components/feedtldr/page-header";
 import {
-  PostHoverPreviews,
+  PostPreviews,
   type SourcePost,
-} from "@/components/feedtldr/post-hover-previews";
+} from "@/components/feedtldr/post-previews";
 import { SourceDataView } from "@/components/feedtldr/source-data";
 import { SummaryProse } from "@/components/feedtldr/summary-prose";
 import { track } from "@/lib/analytics";
@@ -218,16 +218,18 @@ export default function FeedPage() {
       className={cn(
         "flex min-h-dvh overflow-x-clip transition-colors duration-300 ease-brand",
         "animate-in fade-in slide-in-from-bottom-2 duration-200",
-        chatOpen && "lg:bg-card"
+        chatOpen && "md:bg-card"
       )}
     >
       {/* The whole app column (bar included) narrows when the chat opens,
-          and lifts into a rounded card in front of the chat surface. */}
+          and lifts into a rounded card in front of the chat surface. On
+          mobile the chat covers the screen, so the column goes invisible
+          (keeping its scroll position) instead of peeking through. */}
       <div
         className={cn(
-          "flex min-w-0 flex-1 flex-col lg:h-dvh lg:min-h-0 lg:overflow-y-auto lg:bg-background lg:transition-[margin,border-radius,box-shadow] lg:duration-300 lg:ease-brand",
+          "flex min-w-0 flex-1 flex-col md:h-dvh md:min-h-0 md:overflow-y-auto md:bg-background md:transition-[margin,border-radius,box-shadow] md:duration-300 md:ease-brand",
           chatOpen &&
-            "lg:z-10 lg:my-2 lg:ml-2 lg:h-[calc(100dvh-1rem)] lg:rounded-card lg:shadow-card"
+            "max-md:invisible md:z-10 md:my-2 md:ml-2 md:h-[calc(100dvh-1rem)] md:rounded-card md:shadow-card"
         )}
       >
         <AppBar
@@ -282,7 +284,7 @@ export default function FeedPage() {
               </Card>
             ) : (
               <>
-                <Card className="gap-8 border-none p-6 sm:p-10 lg:p-12">
+                <Card className="gap-8 border-none p-6 sm:p-10 md:p-12">
                   <PageHeader
                     title={feed.data.is_demo ? "Demo Feed" : "Today's Feed"}
                     description={
@@ -295,9 +297,9 @@ export default function FeedPage() {
                       <AudioPill src={feed.data.audio_url} className="pt-1" />
                     )}
                   </PageHeader>
-                  <PostHoverPreviews posts={posts}>
+                  <PostPreviews posts={posts}>
                     <SummaryProse html={feed.data.summary_html} />
-                  </PostHoverPreviews>
+                  </PostPreviews>
                 </Card>
                 {!feed.data.is_demo && <SourceDataDisclosure />}
               </>
@@ -317,25 +319,25 @@ export default function FeedPage() {
       <div
           style={{ "--chat-width": `${chatWidth}px` } as React.CSSProperties}
           className={cn(
-            "max-lg:contents lg:block lg:shrink-0",
-            !chatResizing && "lg:transition-[width] lg:duration-300 lg:ease-brand",
-            chatOpen ? "lg:w-[var(--chat-width)]" : "lg:w-0"
+            "max-md:contents md:block md:shrink-0",
+            !chatResizing && "md:transition-[width] md:duration-300 md:ease-brand",
+            chatOpen ? "md:w-[var(--chat-width)]" : "md:w-0"
           )}
         >
           <aside
             className={cn(
               "fixed inset-0 z-50 flex h-dvh flex-col bg-card transition-[opacity,translate,visibility] duration-300 ease-brand",
-              "lg:sticky lg:top-0 lg:z-auto lg:h-dvh lg:w-[var(--chat-width)]",
-              chatResizing && "lg:transition-none lg:select-none",
+              "md:sticky md:top-0 md:z-auto md:h-dvh md:w-[var(--chat-width)]",
+              chatResizing && "md:transition-none md:select-none",
               chatOpen
-                ? "translate-y-0 opacity-100 lg:translate-x-0"
-                : "invisible translate-y-6 opacity-0 lg:translate-y-0 lg:translate-x-10"
+                ? "translate-y-0 opacity-100 md:translate-x-0"
+                : "invisible translate-y-6 opacity-0 md:translate-y-0 md:translate-x-10"
             )}
             aria-label="AI chat"
             aria-hidden={!chatOpen}
             inert={!chatOpen}
           >
-            <div className="relative flex h-full min-h-0 flex-col lg:overflow-hidden">
+            <div className="relative flex h-full min-h-0 flex-col md:overflow-hidden">
               <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} />
             </div>
             <div
@@ -349,7 +351,7 @@ export default function FeedPage() {
               onPointerDown={startChatResize}
               onDoubleClick={() => setChatWidth(CHAT_WIDTH.default)}
               onKeyDown={handleChatResizeKey}
-              className="focus-ring absolute inset-y-2 left-0 hidden w-2 cursor-col-resize touch-none rounded-full before:absolute before:inset-y-0 before:left-1/2 before:w-1 before:-translate-x-1/2 before:rounded-full before:bg-border before:opacity-0 before:transition-opacity before:duration-150 before:ease-brand before:content-[''] hover:before:opacity-100 focus-visible:before:opacity-100 active:before:bg-foreground/25 active:before:opacity-100 lg:block"
+              className="focus-ring absolute inset-y-2 left-0 hidden w-2 cursor-col-resize touch-none rounded-full before:absolute before:inset-y-0 before:left-1/2 before:w-1 before:-translate-x-1/2 before:rounded-full before:bg-border before:opacity-0 before:transition-opacity before:duration-150 before:ease-brand before:content-[''] hover:before:opacity-100 focus-visible:before:opacity-100 active:before:bg-foreground/25 active:before:opacity-100 md:block"
             />
           </aside>
       </div>
