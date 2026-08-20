@@ -1,6 +1,16 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { PencilSimple } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { AccountsField } from "../accounts-field";
 import { SettingsCard } from "./settings-card";
@@ -17,19 +28,31 @@ import { useSettings } from "@/lib/api/queries";
 import { useUpdateSettings } from "@/lib/api/mutations";
 import { DEFAULT_TIMEZONE, TIMEZONES, timezoneLabel } from "@/lib/timezones";
 import { useSyncedState } from "@/lib/use-synced-state";
-import { cn } from "@/lib/utils";
 
 /** The X accounts behind the daily summary, with verify/import/clear. */
 export function AccountsCard() {
   return (
-    <SettingsCard description="Verify checks that each account exists on X.">
-      <AccountsField withActions listClassName="max-h-96" />
+    <SettingsCard
+      description="Verify checks that each account exists on X."
+      className="lg:h-[calc(100dvh-15rem)]"
+      contentClassName="min-h-0 flex-1"
+    >
+      <AccountsField
+        withActions
+        className="min-h-0 flex-1"
+        listClassName="max-h-none min-h-0 flex-1"
+      />
     </SettingsCard>
   );
 }
 
-/** Custom AI prompt; the save action appears only once the text changed. */
+/**
+ * Custom AI prompt: read-only until Edit is pressed. While there are
+ * unsaved edits, refreshing/closing triggers the browser warning and
+ * in-app navigation is intercepted with a save/discard/stay dialog.
+ */
 export function AiPromptCard() {
+  const router = useRouter();
   const settings = useSettings();
   const updateSettings = useUpdateSettings();
   const [prompt, setPrompt] = useSyncedState(
@@ -37,30 +60,164 @@ export function AiPromptCard() {
     (data) => data.ai_prompt ?? "",
     ""
   );
-  const promptDirty = prompt !== (settings.data?.ai_prompt ?? "");
+  const [editing, setEditing] = useState(false);
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const saved = settings.data?.ai_prompt ?? "";
+  const dirty = editing && prompt !== saved;
+
+  // Refresh / tab close: the browser's native unsaved-changes warning.
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
+
+  // In-app navigation: catch link clicks (capture phase, before the Next
+  // router) and route the decision through the dialog instead.
+  useEffect(() => {
+    if (!dirty) return;
+    const intercept = (event: MouseEvent) => {
+      const anchor =
+        event.target instanceof Element
+          ? event.target.closest("a[href]")
+          : null;
+      const href = anchor?.getAttribute("href");
+      if (!href || !href.startsWith("/") || href === window.location.pathname)
+        return;
+      event.preventDefault();
+      event.stopPropagation();
+      setPendingHref(href);
+    };
+    document.addEventListener("click", intercept, true);
+    return () => document.removeEventListener("click", intercept, true);
+  }, [dirty]);
+
+  function startEditing() {
+    setEditing(true);
+    requestAnimationFrame(() => textareaRef.current?.focus());
+  }
+
+  function stopEditing() {
+    setPrompt(saved);
+    setEditing(false);
+  }
+
+  function save(onDone?: () => void) {
+    updateSettings.mutate(
+      { ai_prompt: prompt },
+      {
+        onSuccess: () => {
+          setEditing(false);
+          onDone?.();
+        },
+      }
+    );
+  }
+
+  function leaveAndDiscard() {
+    const href = pendingHref;
+    stopEditing();
+    setPendingHref(null);
+    if (href) router.push(href);
+  }
+
+  function leaveAndSave() {
+    const href = pendingHref;
+    save(() => {
+      setPendingHref(null);
+      if (href) router.push(href);
+    });
+  }
+
+  if (settings.isLoading) {
+    return (
+      <SettingsCard
+        className="lg:h-[calc(100dvh-13.5rem)]"
+        contentClassName="min-h-0 flex-1"
+      >
+        <Skeleton className="min-h-64 w-full flex-1 rounded-field" />
+      </SettingsCard>
+    );
+  }
 
   return (
-    <SettingsCard>
+    <SettingsCard
+      className="lg:h-[calc(100dvh-13.5rem)]"
+      contentClassName="min-h-0 flex-1"
+    >
       <Textarea
+        ref={textareaRef}
         value={prompt}
         onChange={(event) => setPrompt(event.target.value)}
-        rows={12}
+        readOnly={!editing}
         placeholder="Tell the AI what to prioritize in your summaries…"
         aria-label="Custom AI prompt"
+        className="max-h-none min-h-64 flex-1 resize-none bg-card"
       />
-      {/* Kept in the layout so the card height is stable; visible only
-          once the prompt actually changed. */}
-      <div className={cn("flex justify-end", !promptDirty && "invisible")}>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => updateSettings.mutate({ ai_prompt: prompt })}
-          disabled={updateSettings.isPending || !promptDirty}
-        >
-          Save prompt
-        </Button>
-      </div>
+      {editing ? (
+        <div className="flex justify-end gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={stopEditing}
+            disabled={updateSettings.isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => save()}
+            disabled={updateSettings.isPending || !dirty}
+          >
+            Save prompt
+          </Button>
+        </div>
+      ) : (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={startEditing}
+          >
+            <PencilSimple /> Edit
+          </Button>
+        </div>
+      )}
+
+      <Dialog
+        open={pendingHref !== null}
+        onOpenChange={(open) => !open && setPendingHref(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>You have unsaved changes</DialogTitle>
+            <DialogDescription>
+              Your prompt has edits that are not saved yet.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button variant="ghost" onClick={() => setPendingHref(null)}>
+              Keep editing
+            </Button>
+            <Button variant="outline" onClick={leaveAndDiscard}>
+              Leave and discard
+            </Button>
+            <Button onClick={leaveAndSave} disabled={updateSettings.isPending}>
+              Save and leave
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </SettingsCard>
   );
 }
@@ -81,6 +238,17 @@ export function DailyEmailCard() {
   const savedEmail = settings.data?.newsletter_email ?? "";
   const subscribed = savedEmail !== "";
   const emailDirty = email.trim() !== savedEmail;
+
+  if (settings.isLoading) {
+    return (
+      <SettingsCard>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-11 flex-1 rounded-field" />
+          <Skeleton className="h-10 w-32 shrink-0 rounded-full" />
+        </div>
+      </SettingsCard>
+    );
+  }
 
   return (
     <SettingsCard>
@@ -144,6 +312,14 @@ export function TimezoneCard() {
   function selectTimezone(value: string) {
     setTimezone(value);
     updateSettings.mutate({ timezone: value });
+  }
+
+  if (settings.isLoading) {
+    return (
+      <SettingsCard title="Timezone">
+        <Skeleton className="h-11 w-full rounded-field" />
+      </SettingsCard>
+    );
   }
 
   return (

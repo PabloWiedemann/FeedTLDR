@@ -6,13 +6,19 @@ import {
   ArrowsClockwise,
   ChatCircleDots,
   CreditCard,
-  Faders,
+  GearSix,
   SignOut,
   User,
 } from "@phosphor-icons/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,9 +33,8 @@ import { accountPlanLabel } from "@/lib/plans";
 import { GlassHeader } from "./glass-header";
 
 /**
- * App header: settings icon-button left; Re-generate + AI chat + avatar
- * right, on the shared sticky glass bar. The avatar shows the Google
- * profile photo when the account has one, otherwise initials.
+ * App header on the shared sticky glass bar: avatar (Google photo or
+ * initials) + settings gear left, Re-generate + AI chat right.
  */
 export function AppBar({
   email,
@@ -60,35 +65,13 @@ export function AppBar({
 
   return (
     <GlassHeader className="max-w-4xl" bordered={false}>
-      <Button asChild variant="outline" size="icon">
-        <Link href="/app/settings" aria-label="Open settings">
-          <Faders />
-        </Link>
-      </Button>
       <div className="flex items-center gap-2 sm:gap-3">
-        <Button
-          onClick={onRegenerate}
-          disabled={regenerateDisabled}
-          aria-label="Re-generate summary"
-        >
-          <ArrowsClockwise />
-          <span className="hidden sm:inline">Re-generate</span>
-        </Button>
-        <Button
-          variant="outline"
-          onClick={onToggleChat}
-          aria-label={chatOpen ? "Close AI chat" : "Open AI chat"}
-          aria-pressed={chatOpen}
-        >
-          <ChatCircleDots />
-          <span className="hidden sm:inline">AI chat</span>
-        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger
             aria-label="Account menu"
             className="rounded-full focus-ring"
           >
-            <Avatar className="size-10 bg-accent">
+            <Avatar className="size-10 border border-foreground/25 bg-accent">
               {user?.photoURL && (
                 <AvatarImage src={user.photoURL} alt="" referrerPolicy="no-referrer" />
               )}
@@ -137,6 +120,37 @@ export function AppBar({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <TooltipProvider delayDuration={300}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button asChild variant="outline" size="icon" className="group">
+                <Link href="/app/settings" aria-label="Open settings">
+                  <GearSix className="transition-transform duration-300 ease-brand group-hover:rotate-45" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Settings</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+      <div className="flex items-center gap-2 sm:gap-3">
+        <Button
+          onClick={onRegenerate}
+          disabled={regenerateDisabled}
+          aria-label="Re-generate summary"
+        >
+          <ArrowsClockwise />
+          <span className="hidden sm:inline">Re-generate</span>
+        </Button>
+        <Button
+          variant="outline"
+          onClick={onToggleChat}
+          aria-label={chatOpen ? "Close AI chat" : "Open AI chat"}
+          aria-pressed={chatOpen}
+        >
+          <ChatCircleDots />
+          <span className="hidden sm:inline">AI chat</span>
+        </Button>
       </div>
     </GlassHeader>
   );

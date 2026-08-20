@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 /**
- * Settings navigation: a flat full-height panel on desktop (group titles
- * between the two kinds of settings), a scrollable pill strip on mobile.
+ * Settings navigation: a flat full-height panel on desktop (small muted
+ * group labels over ink-colored pill items, so labels read as headings
+ * and items read as clickable), a scrollable pill strip on mobile.
  */
 
 const GROUPS = [
@@ -43,10 +44,8 @@ function NavItem({
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "focus-ring rounded-full px-4 py-2.5 font-medium whitespace-nowrap transition-colors duration-150 ease-brand",
-        active
-          ? "bg-secondary text-foreground"
-          : "text-muted-foreground hover:bg-accent hover:text-foreground",
+        "focus-ring rounded-full px-4 py-2.5 font-medium whitespace-nowrap text-foreground transition-colors duration-150 ease-brand",
+        active ? "bg-secondary" : "hover:bg-accent",
         className
       )}
     >
@@ -60,16 +59,16 @@ export function SettingsNav() {
 
   return (
     <>
-      {/* Desktop: flat panel spanning the viewport height. */}
+      {/* Desktop: flat panel filling the height under the back link. */}
       <nav
         aria-label="Settings"
-        className="sticky top-2 hidden h-[calc(100dvh-1rem)] w-72 shrink-0 flex-col gap-10 overflow-y-auto rounded-card border bg-card p-6 lg:flex"
+        className="hidden min-h-0 flex-1 flex-col gap-8 overflow-y-auto rounded-card border bg-card p-5 lg:flex"
       >
-        <h2 className="px-4 pt-4 text-title">Settings</h2>
-        <div className="flex flex-col gap-10">
+        <h2 className="px-4 pt-2 text-title">Settings</h2>
+        <div className="flex flex-col gap-8">
           {GROUPS.map((group) => (
-            <div key={group.title} className="flex flex-col gap-2">
-              <p className="px-4 pb-1 text-sm font-medium text-muted-foreground">
+            <div key={group.title} className="flex flex-col gap-1.5">
+              <p className="px-4 pb-1 text-xs font-semibold tracking-wide text-muted-foreground">
                 {group.title}
               </p>
               {group.items.map((item) => (
@@ -94,10 +93,7 @@ export function SettingsNav() {
               href={item.href}
               label={item.label}
               active={pathname === item.href}
-              className={cn(
-                "text-sm",
-                pathname !== item.href && "bg-card"
-              )}
+              className={cn("text-sm", pathname !== item.href && "bg-card")}
             />
           ))}
         </div>

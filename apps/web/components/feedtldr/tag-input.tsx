@@ -21,6 +21,7 @@ export function TagInput({
   disabled,
   listFooter,
   listClassName,
+  className,
 }: {
   items: TagItem[];
   onAdd: (values: string[]) => void;
@@ -31,6 +32,7 @@ export function TagInput({
   listFooter?: React.ReactNode;
   /** Overrides the chip list's max height (defaults to max-h-64). */
   listClassName?: string;
+  className?: string;
 }) {
   const [draft, setDraft] = useState("");
 
@@ -44,7 +46,7 @@ export function TagInput({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className={cn("flex flex-col gap-3", className)}>
       <div className="flex items-center gap-2">
         <Input
           value={draft}

@@ -13,12 +13,14 @@ export function SettingsCard({
   description,
   destructive,
   className,
+  contentClassName,
   children,
 }: {
   title?: string;
   description?: string;
   destructive?: boolean;
   className?: string;
+  contentClassName?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -48,7 +50,9 @@ export function SettingsCard({
           )}
         </CardHeader>
       )}
-      <CardContent className="flex flex-col gap-3">{children}</CardContent>
+      <CardContent className={cn("flex flex-col gap-3", contentClassName)}>
+        {children}
+      </CardContent>
     </Card>
   );
 }
@@ -62,10 +66,10 @@ export function SettingsPageHeader({
   description?: string;
 }) {
   return (
-    <header className="flex flex-col gap-1.5">
+    <header className="flex flex-col gap-2.5">
       <h1 className="text-title">{title}</h1>
       {description && (
-        <p className="max-w-prose text-sm text-muted-foreground text-pretty">
+        <p className="text-base leading-relaxed text-muted-foreground text-pretty">
           {description}
         </p>
       )}
