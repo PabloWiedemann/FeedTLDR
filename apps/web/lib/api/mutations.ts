@@ -152,6 +152,7 @@ export function useUpdateMe() {
       tos_accepted?: boolean | null;
       onboarded?: boolean | null;
       onboarding_step?: number | null;
+      onboarding_survey?: Record<string, string | string[]> | null;
     }) => unwrap(await api.PATCH("/v1/me", { body })),
     onSuccess: () => invalidate([queryKeys.me]),
     onError: toastError,

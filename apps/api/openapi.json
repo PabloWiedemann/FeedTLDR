@@ -449,6 +449,24 @@
             "title": "Onboarding Step",
             "type": "integer"
           },
+          "onboarding_survey": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ]
+            },
+            "default": {},
+            "title": "Onboarding Survey",
+            "type": "object"
+          },
           "plan": {
             "title": "Plan",
             "type": "string"
@@ -862,6 +880,30 @@
               }
             ],
             "title": "Onboarding Step"
+          },
+          "onboarding_survey": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onboarding Survey"
           },
           "timezone": {
             "anyOf": [

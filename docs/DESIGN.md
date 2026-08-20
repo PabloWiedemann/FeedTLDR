@@ -139,8 +139,8 @@ Base primitives via `npx shadcn@latest add`, then restyled through tokens (never
 | `Field` | shadcn field | Label + control + description + error. Every form field uses it; no hand-rolled `grid gap-2` |
 | `Table` | shadcn table | Source-data rows |
 | `ToggleGroup` | shadcn toggle-group | Segmented pills (billing interval) |
-| `TagInput` | custom (Input + Badge) | X-account chips: type, Enter to add, X to remove, paste-splits on commas; chip list caps at `max-h-64` and scrolls under an optional glassy sticky `listFooter` (verify when unverified handles exist / import / clear-with-inline-confirm) |
-| `AccountsField` | custom | TagInput + plan-limit notice, plus `VerifyAccountsButton` and `ImportAccountsDialog`. Shared by the settings sheet and onboarding |
+| `TagInput` | custom (Input + Badge) | X-account chips: type, Enter to add, X to remove, paste-splits on commas; chip list caps at `max-h-64` (callers override via `listClassName`, e.g. viewport-clamped on onboarding) and scrolls under an optional glassy sticky `listFooter` (verify when unverified handles exist / import / clear-with-inline-confirm) |
+| `AccountsField` | custom | TagInput + plan-limit notice, plus `VerifyAccountsButton` (skippable via `withVerify={false}` where verification lives on the step's primary button) and `ImportAccountsDialog`. Shared by settings and onboarding |
 | `AccountChip` | Badge | Handle + verification state (pastel semantics §2) |
 | `Notice` | custom | Inline message block, tones info/warning/success/error, filled or plain. The only pastel surface |
 | `Spinner` | custom | The one busy indicator; `label` when it stands alone |
@@ -158,7 +158,8 @@ Base primitives via `npx shadcn@latest add`, then restyled through tokens (never
 | `StatCard` | custom | Posts/likes/views metrics |
 | `FeedCharts` | Recharts via `lib/chart-theme.ts` | Posts per account, engagement, timeline. Recharts cannot read classes, so `chart-theme` is the one place a chart names a `var(--token)` |
 | `ThemePicker` | Select/pills | Summary theme presets (General/ML/Politics/Finance) + custom prompt textarea |
-| `OnboardingSteps` | custom | 3-step wizard progress trail |
+| `OnboardingSteps` | custom (Progress) | Quiet progress bar filling in step fractions, primary green on a grey (`border`) track; step labels are sr-only |
+| `SurveyQuestion` | custom (FieldSet + ToggleGroup) | One optional multiple-choice question as a vertical stack of borderless rows, each led by a radio dot that fills primary green when selected; an always-last "Other" row reveals a free-text input; `hideLabel` when a card title carries the question |
 | `PlanCard` | custom | Plan tier + features + the one action that plan offers (`planAction` owns that rule) |
 | `UsageSummary` | custom | Credit meter + period counters |
 | `EmptyState` | custom | Composed empty states w/ mascot + one CTA |
@@ -175,7 +176,7 @@ Every component ships with: hover, focus-visible, active, disabled, loading, and
 - **Settings `/app/settings/*`** — floating sidebar nav (groups: Your account -> Profile, Billing; Your summary -> Accounts, AI prompt, Daily email) beside a `max-w-2xl` content column. Profile: details + danger zone. Billing: plan/credits + period usage. Accounts: TagInput with verify/import/clear on the glassy footer. AI prompt: textarea, save appears only when changed. Daily email: subscription-aware control (Subscribed label / Update / Subscribe, fixed-width slot) + timezone card. Inline validation below fields; plan-limit notices with upgrade link.
 - **Generate dialog** — fetch-latest toggle vs re-summarize, theme/prompt, CreditBadge cost preview, Generate primary; disabled states explain why (no accounts / none verified / insufficient credits).
 - **Auth `/login` `/signup`** — single centered card on cream, logo, email+password + Google button, plain error copy; password requirements as helper list.
-- **Onboarding `/onboarding`** — 3 steps (add accounts → verify → newsletter email), OnboardingSteps progress, skippable where safe.
+- **Onboarding `/onboarding`** — 5 steps (three about-you questions, one per card, all optional with shuffled options and an "Other" free-text pill → add accounts with verify on the primary button → newsletter email with an explicit "I don't want emails" opt-out that confirms in a Notice), skippable where safe. The page never scrolls (`h-dvh`): the chip list grows to fill the card's available height and scrolls inside it, and a stationary bottom block — OnboardingSteps progress bar over the Back/primary buttons — sits outside the card. Survey answers save per question to `customers/{uid}.onboarding_survey`. Survey answers persist to `customers/{uid}.onboarding_survey` (no backfill for older users).
 - **Chat** — persistent right side panel on `/app` (no separate route): a full-height floating white rounded card beside the app column — opening it pushes the app bar and summary content left together on desktop (drag-resizable width); full-screen sheet on mobile; message list + composer with context cards, credits per message noted, clear-chat, closable at any time with history kept while on the page.
 - **Pricing `/pricing`** — PricingCards from plan config; current plan + usage meters for signed-in users; checkout/portal via API.
 - **Profile** (menu from Avatar) — name edit, plan + credits, manage subscription (portal), logout, delete account (typed confirmation dialog).

@@ -1,7 +1,7 @@
 """Pydantic models for the v1 API. These drive openapi.json, which drives the
 generated TypeScript client (pnpm gen:api in apps/web)."""
 
-from typing import Optional
+from typing import Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -92,6 +92,7 @@ class MeResponse(BaseModel):
     tos_accepted: bool = False
     onboarded: bool = False
     onboarding_step: int = 0
+    onboarding_survey: dict[str, Union[str, list[str]]] = {}
     usage: UsageCounts
     credits: CreditState
 
@@ -102,6 +103,7 @@ class UpdateMeRequest(BaseModel):
     tos_accepted: Optional[bool] = None
     onboarded: Optional[bool] = None
     onboarding_step: Optional[int] = None
+    onboarding_survey: Optional[dict[str, Union[str, list[str]]]] = None
 
 
 # ---------- settings ----------

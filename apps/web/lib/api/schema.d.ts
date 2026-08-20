@@ -604,6 +604,13 @@ export interface components {
              * @default 0
              */
             onboarding_step: number;
+            /**
+             * Onboarding Survey
+             * @default {}
+             */
+            onboarding_survey: {
+                [key: string]: string | string[];
+            };
             /** Plan */
             plan: string;
             plan_info: components["schemas"]["PlanInfo"];
@@ -760,6 +767,10 @@ export interface components {
             onboarded?: boolean | null;
             /** Onboarding Step */
             onboarding_step?: number | null;
+            /** Onboarding Survey */
+            onboarding_survey?: {
+                [key: string]: string | string[];
+            } | null;
             /** Timezone */
             timezone?: string | null;
             /** Tos Accepted */

@@ -22,6 +22,7 @@ _ME_FIELDS = [
     "TOS_accepted",
     "onboarded",
     "onboarding_step",
+    "onboarding_survey",
 ]
 
 # Request field -> Firestore field. The profile spans two documents' worth of
@@ -32,6 +33,7 @@ _PROFILE_UPDATES = {
     "tos_accepted": "TOS_accepted",
     "onboarded": "onboarded",
     "onboarding_step": "onboarding_step",
+    "onboarding_survey": "onboarding_survey",
 }
 
 
@@ -69,6 +71,7 @@ def get_me(user: AuthUser = Depends(get_current_user)):
         tos_accepted=bool(data.get("TOS_accepted")),
         onboarded=bool(data.get("onboarded")),
         onboarding_step=int(data.get("onboarding_step") or 0),
+        onboarding_survey=data.get("onboarding_survey") or {},
         usage=schemas.UsageCounts.from_plan_usage(
             utils_firebase.fetch_plan_usage_data(user.uid).get(plan, {})
         ),

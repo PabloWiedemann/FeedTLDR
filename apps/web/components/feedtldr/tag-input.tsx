@@ -30,7 +30,7 @@ export function TagInput({
   disabled?: boolean;
   /** Actions pinned under the chip list; chips scroll beneath them on glass. */
   listFooter?: React.ReactNode;
-  /** Overrides the chip list's max height (defaults to max-h-64). */
+  /** Replaces the chip list's default height cap (max-h-64). */
   listClassName?: string;
   className?: string;
 }) {
@@ -46,8 +46,10 @@ export function TagInput({
   }
 
   return (
-    <div className={cn("flex flex-col gap-3", className)}>
-      <div className="flex items-center gap-2">
+    // min-h-0 lets a height-capped parent shrink the chip list into its own
+    // scroll (the input row keeps its natural height).
+    <div className={cn("flex min-h-0 flex-col gap-3", className)}>
+      <div className="flex shrink-0 items-center gap-2">
         <Input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -75,7 +77,7 @@ export function TagInput({
         <div
           className={
             items.length > 0
-              ? cn("max-h-64 overflow-y-auto", listClassName)
+              ? cn("overflow-y-auto", listClassName ?? "max-h-64")
               : undefined
           }
         >

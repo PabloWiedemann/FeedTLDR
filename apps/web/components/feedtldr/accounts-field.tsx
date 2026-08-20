@@ -26,7 +26,7 @@ import {
 } from "@/lib/api/mutations";
 
 /** The accounts a user follows, tagged with whether we found them on X. */
-function useAccountTags(enabled: boolean) {
+export function useAccountTags(enabled: boolean) {
   const accounts = useAccounts(enabled);
   const verified = new Set(accounts.data?.verified_accounts ?? []);
   const items: TagItem[] = (accounts.data?.accounts ?? []).map((handle) => ({
@@ -78,12 +78,15 @@ function ClearAccountsButton({ count }: { count: number }) {
 export function AccountsField({
   enabled = true,
   withActions = false,
+  withVerify = true,
   listClassName,
   className,
 }: {
   enabled?: boolean;
   /** Pin verify/import/clear actions under the chip list (settings). */
   withActions?: boolean;
+  /** Drop the verify action when verification lives elsewhere (onboarding). */
+  withVerify?: boolean;
   /** Overrides the chip list's max height (see TagInput). */
   listClassName?: string;
   className?: string;
@@ -111,7 +114,9 @@ export function AccountsField({
   }
 
   return (
-    <div className={cn("flex flex-col gap-3", className)}>
+    // min-h-0 lets a height-capped parent (onboarding card) shrink the chip
+    // list into its own scroll instead of overflowing the card.
+    <div className={cn("flex min-h-0 flex-col gap-3", className)}>
       <TagInput
         items={items}
         onAdd={(values) => addAccounts.mutate(values)}
@@ -122,7 +127,7 @@ export function AccountsField({
         listFooter={
           withActions ? (
             <>
-              <VerifyAccountsButton enabled={enabled} />
+              {withVerify && <VerifyAccountsButton enabled={enabled} />}
               <ImportAccountsDialog />
               <ClearAccountsButton count={items.length} />
             </>
@@ -190,9 +195,9 @@ export function ImportAccountsDialog() {
           <DialogHeader>
             <DialogTitle>Import the accounts someone follows</DialogTitle>
             <DialogDescription>
-              Type one X account, for example your own. We find every account
-              it follows and add them to your list. Your daily summary
-              is created from the posts of the accounts on that list.
+              Type one X account, for example your own. We find the accounts
+              that it follows and add them to your list. Your daily summary
+              comes from the posts of the accounts on your list.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3">
