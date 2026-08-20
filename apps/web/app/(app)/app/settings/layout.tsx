@@ -10,8 +10,8 @@ export default function SettingsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-dvh flex-col gap-4 p-2 animate-in fade-in slide-in-from-bottom-2 duration-200 ease-brand lg:flex-row lg:gap-8">
-      <div className="flex flex-col gap-2 lg:sticky lg:top-2 lg:h-[calc(100dvh-1rem)] lg:w-64 lg:shrink-0">
+    <div className="flex min-h-dvh flex-col gap-4 p-2 animate-in fade-in slide-in-from-bottom-2 duration-200 ease-brand md:flex-row md:gap-8">
+      <div className="flex flex-col gap-2 md:sticky md:top-2 md:h-[calc(100dvh-1rem)] md:w-64 md:shrink-0">
         <div>
           <Button
             asChild
@@ -26,7 +26,7 @@ export default function SettingsLayout({
         </div>
         <SettingsNav />
       </div>
-      <main className="min-w-0 flex-1 px-2 pb-16 sm:px-6 lg:py-10">
+      <main className="min-w-0 flex-1 px-4 pb-16 sm:px-6 md:py-10">
         <div className="mx-auto flex w-full max-w-2xl flex-col gap-8">
           {children}
         </div>

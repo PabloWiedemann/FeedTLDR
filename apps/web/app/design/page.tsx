@@ -60,7 +60,7 @@ import { PlanCard } from "@/components/feedtldr/plan-card";
 import { SourceDataTable } from "@/components/feedtldr/source-data-table";
 import { Spinner } from "@/components/feedtldr/spinner";
 import { StatCard } from "@/components/feedtldr/stat-card";
-import { PostHoverPreviews } from "@/components/feedtldr/post-hover-previews";
+import { PostPreviews } from "@/components/feedtldr/post-previews";
 import { SummaryProse } from "@/components/feedtldr/summary-prose";
 import { TagInput, type TagItem } from "@/components/feedtldr/tag-input";
 import { UsageSummary } from "@/components/feedtldr/usage-summary";
@@ -526,9 +526,9 @@ export default function DesignGallery() {
         <AudioPill src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=" />
         <Card>
           <CardContent>
-            <PostHoverPreviews posts={SAMPLE_POSTS}>
+            <PostPreviews posts={SAMPLE_POSTS}>
               <SummaryProse html={SAMPLE_SUMMARY} />
-            </PostHoverPreviews>
+            </PostPreviews>
           </CardContent>
         </Card>
       </Section>

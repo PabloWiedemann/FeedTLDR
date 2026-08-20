@@ -34,7 +34,7 @@ export function AccountsCard() {
   return (
     <SettingsCard
       description="Verify checks that each account exists on X."
-      className="lg:h-[calc(100dvh-15rem)]"
+      className="md:h-[calc(100dvh-15rem)]"
       contentClassName="min-h-0 flex-1"
     >
       <AccountsField
@@ -138,7 +138,7 @@ export function AiPromptCard() {
   if (settings.isLoading) {
     return (
       <SettingsCard
-        className="lg:h-[calc(100dvh-13.5rem)]"
+        className="md:h-[calc(100dvh-13.5rem)]"
         contentClassName="min-h-0 flex-1"
       >
         <Skeleton className="min-h-64 w-full flex-1 rounded-field" />
@@ -148,7 +148,7 @@ export function AiPromptCard() {
 
   return (
     <SettingsCard
-      className="lg:h-[calc(100dvh-13.5rem)]"
+      className="md:h-[calc(100dvh-13.5rem)]"
       contentClassName="min-h-0 flex-1"
     >
       <Textarea
