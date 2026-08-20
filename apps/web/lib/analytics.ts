@@ -8,6 +8,7 @@ import posthog from "posthog-js";
 export type AnalyticsEvent =
   | "cta_clicked"
   | "signup_completed"
+  | "onboarding_survey_submitted"
   | "onboarding_completed"
   | "generation_started"
   | "generation_completed"

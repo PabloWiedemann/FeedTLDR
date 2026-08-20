@@ -1,9 +1,9 @@
-import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
 
 /**
- * Numbered progress trail for the onboarding wizard (DESIGN.md §8).
- * Steps read as done, current, or upcoming; the number is the static cue and
- * the colour change is the animated one.
+ * Quiet progress bar for the onboarding wizard (DESIGN.md §8): fills in step
+ * fractions on the primary green. Step labels are for assistive tech only —
+ * the steps explain themselves.
  */
 export function OnboardingSteps({
   steps,
@@ -14,37 +14,15 @@ export function OnboardingSteps({
   current: number;
 }) {
   return (
-    <ol className="flex items-center gap-3" aria-label="Onboarding progress">
-      {steps.map((label, index) => {
-        const done = index < current;
-        const active = index === current;
-        return (
-          <li key={label} className="flex items-center gap-3">
-            <span
-              aria-current={active ? "step" : undefined}
-              className={cn(
-                "grid size-7 place-items-center rounded-full text-xs font-medium transition-colors duration-300 ease-brand",
-                done && "bg-pastel-green text-pastel-green-foreground",
-                active && "bg-primary text-primary-foreground",
-                !done && !active && "bg-secondary text-muted-foreground"
-              )}
-            >
-              {index + 1}
-            </span>
-            <span
-              className={cn(
-                "text-sm",
-                active ? "font-medium" : "text-muted-foreground"
-              )}
-            >
-              {label}
-            </span>
-            {index < steps.length - 1 && (
-              <span className="h-px w-6 bg-border" aria-hidden="true" />
-            )}
-          </li>
-        );
-      })}
-    </ol>
+    <div className="w-full">
+      <Progress
+        className="bg-border"
+        value={((current + 1) / steps.length) * 100}
+        aria-label={`Step ${current + 1} of ${steps.length}: ${steps[current]}`}
+      />
+      <p className="sr-only" aria-live="polite">
+        Step {current + 1} of {steps.length}: {steps[current]}
+      </p>
+    </div>
   );
 }

@@ -54,6 +54,7 @@ import { GenerationProgress } from "@/components/feedtldr/generation-progress";
 import { Logo } from "@/components/feedtldr/logo";
 import { Notice } from "@/components/feedtldr/notice";
 import { OnboardingSteps } from "@/components/feedtldr/onboarding-steps";
+import { SurveyQuestion } from "@/components/feedtldr/survey-question";
 import { PageHeader } from "@/components/feedtldr/page-header";
 import { PlanCard } from "@/components/feedtldr/plan-card";
 import { SourceDataTable } from "@/components/feedtldr/source-data-table";
@@ -101,7 +102,13 @@ const SAMPLE_POSTS = [
   },
 ];
 
-const ONBOARDING_STEPS = ["Accounts", "Verify", "Newsletter"] as const;
+const ONBOARDING_STEPS = [
+  "Your role",
+  "Your goal",
+  "What to follow",
+  "Add accounts",
+  "Daily email",
+] as const;
 
 const SAMPLE_ROWS = [
   {
@@ -236,6 +243,14 @@ export default function DesignGallery() {
     { value: "@notarealuser999", state: "not_found" },
     { value: "@paulg", state: "unverified" },
   ]);
+  const [surveyRole, setSurveyRole] = useState<{
+    selected: string[];
+    other?: string;
+  }>({ selected: ["Engineer"] });
+  const [surveyTopics, setSurveyTopics] = useState<{
+    selected: string[];
+    other?: string;
+  }>({ selected: ["AI & tech"], other: "Space" });
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 py-16">
@@ -385,8 +400,35 @@ export default function DesignGallery() {
       <Section title="Onboarding steps">
         <div className="flex flex-col gap-6">
           <OnboardingSteps steps={ONBOARDING_STEPS} current={0} />
-          <OnboardingSteps steps={ONBOARDING_STEPS} current={1} />
           <OnboardingSteps steps={ONBOARDING_STEPS} current={2} />
+          <OnboardingSteps steps={ONBOARDING_STEPS} current={4} />
+        </div>
+      </Section>
+
+      <Section title="Survey question">
+        <div className="flex flex-col gap-5">
+          <SurveyQuestion
+            label="What best describes you? (single choice)"
+            options={["Founder", "Engineer", "Marketer", "Investor"]}
+            value={surveyRole.selected}
+            otherValue={surveyRole.other}
+            onChange={(selected, other) => setSurveyRole({ selected, other })}
+          />
+          <SurveyQuestion
+            label="What do you want to follow? (multiple choice, Other open)"
+            options={["My product or brand", "My industry", "AI & tech"]}
+            multiple
+            value={surveyTopics.selected}
+            otherValue={surveyTopics.other}
+            onChange={(selected, other) => setSurveyTopics({ selected, other })}
+          />
+          <SurveyQuestion
+            label="Disabled question"
+            options={["Option A", "Option B"]}
+            value={[]}
+            onChange={() => {}}
+            disabled
+          />
         </div>
       </Section>
 
