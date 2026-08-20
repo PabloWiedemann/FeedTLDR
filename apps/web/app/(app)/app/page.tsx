@@ -217,6 +217,7 @@ export default function FeedPage() {
     <div
       className={cn(
         "flex min-h-dvh overflow-x-clip transition-colors duration-300 ease-brand",
+        "animate-in fade-in slide-in-from-bottom-2 duration-200",
         chatOpen && "lg:bg-card"
       )}
     >

@@ -11,10 +11,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Notice } from "./notice";
 import { Spinner } from "./spinner";
 import { TagInput, type TagItem } from "./tag-input";
 import { useAccounts } from "@/lib/api/queries";
+import { cn } from "@/lib/utils";
 import {
   useAddAccounts,
   useClearAccounts,
@@ -33,6 +35,7 @@ function useAccountTags(enabled: boolean) {
   }));
 
   return {
+    isLoading: accounts.isLoading,
     items,
     maxAccounts: accounts.data?.max_accounts,
     unverifiedCount: items.filter((item) => item.state !== "verified").length,
@@ -76,25 +79,45 @@ export function AccountsField({
   enabled = true,
   withActions = false,
   listClassName,
+  className,
 }: {
   enabled?: boolean;
   /** Pin verify/import/clear actions under the chip list (settings). */
   withActions?: boolean;
   /** Overrides the chip list's max height (see TagInput). */
   listClassName?: string;
+  className?: string;
 }) {
-  const { items, maxAccounts, atLimit } = useAccountTags(enabled);
+  const { isLoading, items, maxAccounts, atLimit } = useAccountTags(enabled);
   const addAccounts = useAddAccounts();
   const removeAccount = useRemoveAccount();
   const disabled = addAccounts.isPending || atLimit;
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-11 flex-1 rounded-field" />
+          <Skeleton className="size-10 shrink-0 rounded-full" />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Skeleton className="h-8 w-28 rounded-full" />
+          <Skeleton className="h-8 w-24 rounded-full" />
+          <Skeleton className="h-8 w-32 rounded-full" />
+          <Skeleton className="h-8 w-24 rounded-full" />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-3">
+    <div className={cn("flex flex-col gap-3", className)}>
       <TagInput
         items={items}
         onAdd={(values) => addAccounts.mutate(values)}
         onRemove={(value) => removeAccount.mutate(value)}
         disabled={disabled}
+        className="min-h-0 flex-1"
         listClassName={listClassName}
         listFooter={
           withActions ? (
