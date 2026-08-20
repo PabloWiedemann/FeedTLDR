@@ -214,9 +214,21 @@ export default function FeedPage() {
   }, [me.data, router]);
 
   return (
-    <div className="flex min-h-dvh overflow-x-clip">
-      {/* The whole app column (bar included) narrows when the chat opens. */}
-      <div className="flex min-w-0 flex-1 flex-col">
+    <div
+      className={cn(
+        "flex min-h-dvh overflow-x-clip transition-colors duration-300 ease-brand",
+        chatOpen && "lg:bg-card"
+      )}
+    >
+      {/* The whole app column (bar included) narrows when the chat opens,
+          and lifts into a rounded card in front of the chat surface. */}
+      <div
+        className={cn(
+          "flex min-w-0 flex-1 flex-col lg:h-dvh lg:min-h-0 lg:overflow-y-auto lg:bg-background lg:transition-[margin,border-radius,box-shadow] lg:duration-300 lg:ease-brand",
+          chatOpen &&
+            "lg:z-10 lg:my-2 lg:ml-2 lg:h-[calc(100dvh-1rem)] lg:rounded-card lg:shadow-card"
+        )}
+      >
         <AppBar
           email={me.data?.email ?? ""}
           name={me.data?.name}
@@ -312,7 +324,7 @@ export default function FeedPage() {
           <aside
             className={cn(
               "fixed inset-0 z-50 flex h-dvh flex-col bg-card transition-[opacity,translate,visibility] duration-300 ease-brand",
-              "lg:sticky lg:top-0 lg:z-auto lg:h-dvh lg:w-[var(--chat-width)] lg:bg-transparent lg:p-2",
+              "lg:sticky lg:top-0 lg:z-auto lg:h-dvh lg:w-[var(--chat-width)]",
               chatResizing && "lg:transition-none lg:select-none",
               chatOpen
                 ? "translate-y-0 opacity-100 lg:translate-x-0"
@@ -322,7 +334,7 @@ export default function FeedPage() {
             aria-hidden={!chatOpen}
             inert={!chatOpen}
           >
-            <div className="relative flex h-full min-h-0 flex-col lg:overflow-hidden lg:rounded-card lg:border lg:bg-card">
+            <div className="relative flex h-full min-h-0 flex-col lg:overflow-hidden">
               <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} />
             </div>
             <div
