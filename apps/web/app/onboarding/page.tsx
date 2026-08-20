@@ -18,6 +18,7 @@ import { track } from "@/lib/analytics";
 import { logout } from "@/lib/firebase";
 import { useAccounts, useMe, useSettings } from "@/lib/api/queries";
 import { useUpdateMe, useUpdateSettings } from "@/lib/api/mutations";
+import { onboardingPreview } from "@/lib/preview";
 import { useSyncedState } from "@/lib/use-synced-state";
 
 const STEPS = ["Accounts", "Verify", "Newsletter"] as const;
@@ -95,7 +96,7 @@ export default function OnboardingPage() {
   }, [loading, user, router]);
 
   useEffect(() => {
-    if (me.data?.onboarded) router.replace("/app");
+    if (me.data?.onboarded && !onboardingPreview) router.replace("/app");
   }, [me.data, router]);
 
   const hasAccounts = (accounts.data?.accounts.length ?? 0) > 0;
@@ -103,10 +104,14 @@ export default function OnboardingPage() {
 
   function goTo(next: number) {
     setStep(next);
-    updateMe.mutate({ onboarding_step: next });
+    if (!onboardingPreview) updateMe.mutate({ onboarding_step: next });
   }
 
   function finish() {
+    if (onboardingPreview) {
+      router.replace("/app");
+      return;
+    }
     if (email.trim() !== "") {
       updateSettings.mutate({ newsletter_email: email.trim() });
     }
@@ -126,6 +131,11 @@ export default function OnboardingPage() {
       <div className="flex flex-col items-center gap-2">
         <Logo />
         {user?.email && <SignedInAs email={user.email} />}
+        {onboardingPreview && (
+          <p className="text-xs text-muted-foreground">
+            Preview mode — steps and finish are not saved
+          </p>
+        )}
       </div>
 
       <OnboardingSteps steps={STEPS} current={step} />
