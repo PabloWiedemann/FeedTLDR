@@ -3,7 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { registerAccount } from "@/lib/auth";
-import { getGoogleRedirectResult, googleErrorMessage } from "@/lib/firebase";
+import {
+  clearGoogleRedirectPending,
+  getGoogleRedirectResult,
+  googleErrorMessage,
+  googleRedirectPending,
+} from "@/lib/firebase";
 
 /**
  * Completes a redirect-style Google sign-in when the user returns from
@@ -19,9 +24,16 @@ export function useGoogleRedirect() {
     let cancelled = false;
 
     async function completeSignIn() {
+      // The flag set when leaving for Google makes the wait visible right
+      // away — getRedirectResult alone can take seconds to resolve, during
+      // which the page would otherwise look idle.
+      if (googleRedirectPending()) setCompleting(true);
       try {
         const credential = await getGoogleRedirectResult();
-        if (!credential || cancelled) return;
+        if (!credential || cancelled) {
+          if (!cancelled) setCompleting(false);
+          return;
+        }
         setCompleting(true);
         const destination = await registerAccount(credential);
         if (!cancelled) router.replace(destination);
@@ -33,6 +45,8 @@ export function useGoogleRedirect() {
             : googleErrorMessage(error)
         );
         setCompleting(false);
+      } finally {
+        clearGoogleRedirectPending();
       }
     }
 

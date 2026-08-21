@@ -88,6 +88,8 @@ export default function SignupPage() {
       title="Create your account"
       onGoogle={signIn}
       googleLabel="Sign up with Google"
+      googleBusy={completing}
+      googleDisabled={busy || completing}
       footer={
         <p>
           Already have an account?{" "}

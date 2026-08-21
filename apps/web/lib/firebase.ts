@@ -128,10 +128,35 @@ export async function refreshCurrentUser(): Promise<User | null> {
  */
 export async function loginWithGoogle(): Promise<UserCredential | null> {
   if (process.env.NEXT_PUBLIC_AUTH_PROXY === "1") {
+    try {
+      sessionStorage.setItem(GOOGLE_REDIRECT_FLAG, "1");
+    } catch {
+      // Storage-restricted browsers just lose the instant loading state.
+    }
     await signInWithRedirect(auth, googleProvider);
     return null;
   }
   return signInWithPopup(auth, googleProvider);
+}
+
+const GOOGLE_REDIRECT_FLAG = "feedtldr.google-redirect";
+
+/** True while this tab is mid round-trip to Google's sign-in page, so the
+ * return page can show its busy state before getRedirectResult resolves. */
+export function googleRedirectPending(): boolean {
+  try {
+    return sessionStorage.getItem(GOOGLE_REDIRECT_FLAG) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function clearGoogleRedirectPending() {
+  try {
+    sessionStorage.removeItem(GOOGLE_REDIRECT_FLAG);
+  } catch {
+    // Nothing to clear if storage is unavailable.
+  }
 }
 
 /** Result of a completed redirect sign-in, or null if none is pending. */
