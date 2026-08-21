@@ -49,7 +49,7 @@ def send_welcome_email(email: str, name: str) -> None:
         <p style="line-height: 1.6; margin: 0 0 8px;">{greeting} so glad you're here.</p>
         <p style="line-height: 1.6; margin: 0 0 20px;">Mornings just got simpler: pick the X accounts you care about, and we turn everything they post into one calm daily brief — ready to read with your coffee or listen to on the go.</p>
         <a href="{app_url}/app" style="{BUTTON_STYLE}">Get your first brief</a>
-        <p style="margin: 24px 0 0; font-size: 14px; color: {MUTED};">Questions? Write us anytime at <a href="mailto:info@toriml.com" style="color: {FOREST};">info@toriml.com</a> — a human reads every note.</p>
+        <p style="margin: 24px 0 0; font-size: 14px; color: {MUTED};">Questions? Write us anytime at <a href="mailto:support@feedtldr.com" style="color: {FOREST};">support@feedtldr.com</a> — a human reads every note.</p>
     </div>
     """
     content = create_email_template(

@@ -17,7 +17,7 @@ export default function ImprintPage() {
         </section>
         <section>
           <h2 className="mb-2 text-section">Contact</h2>
-          <p className="text-muted-foreground">Email: info@toriml.com</p>
+          <p className="text-muted-foreground">Email: support@feedtldr.com</p>
         </section>
         <section>
           <h2 className="mb-2 text-section">Authorized representatives</h2>
