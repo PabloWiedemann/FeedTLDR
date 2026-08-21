@@ -1057,6 +1057,22 @@
               "title": "Authorization",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
+            }
           }
         ],
         "requestBody": {
@@ -1170,6 +1186,22 @@
               "title": "Authorization",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
+            }
           }
         ],
         "requestBody": {
@@ -1245,6 +1277,22 @@
               "title": "Authorization",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
+            }
           }
         ],
         "responses": {
@@ -1288,6 +1336,22 @@
               "title": "Authorization",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
+            }
           }
         ],
         "responses": {
@@ -1330,6 +1394,22 @@
               "default": "",
               "title": "Authorization",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
             }
           }
         ],
@@ -1406,6 +1486,22 @@
               "title": "Authorization",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
+            }
           }
         ],
         "responses": {
@@ -1449,6 +1545,22 @@
               "title": "Authorization",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
+            }
           }
         ],
         "responses": {
@@ -1491,6 +1603,22 @@
               "default": "",
               "title": "Authorization",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
             }
           }
         ],
@@ -1565,6 +1693,22 @@
               "title": "Authorization",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
+            }
           }
         ],
         "responses": {
@@ -1608,6 +1752,22 @@
               "default": "",
               "title": "Authorization",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
             }
           }
         ],
@@ -1653,6 +1813,22 @@
               "title": "Authorization",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
+            }
           }
         ],
         "responses": {
@@ -1694,6 +1870,22 @@
               "title": "Authorization",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
+            }
           }
         ],
         "responses": {
@@ -1734,6 +1926,22 @@
               "default": "",
               "title": "Authorization",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
             }
           }
         ],
@@ -1788,6 +1996,22 @@
               "title": "Authorization",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
+            }
           }
         ],
         "responses": {
@@ -1828,6 +2052,22 @@
               "default": "",
               "title": "Authorization",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
             }
           }
         ],
@@ -1882,6 +2122,22 @@
               "title": "Authorization",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
+            }
           }
         ],
         "responses": {
@@ -1922,6 +2178,22 @@
               "default": "",
               "title": "Authorization",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
             }
           }
         ],
@@ -1976,6 +2248,22 @@
               "title": "Authorization",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
+            }
           }
         ],
         "requestBody": {
@@ -2029,6 +2317,22 @@
               "title": "Authorization",
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
+            }
           }
         ],
         "responses": {
@@ -2080,6 +2384,22 @@
               "default": "",
               "title": "Authorization",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
             }
           }
         ],

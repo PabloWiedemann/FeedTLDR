@@ -840,6 +840,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -910,6 +911,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -965,6 +967,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -996,6 +999,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1027,6 +1031,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1082,6 +1087,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1113,6 +1119,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1144,6 +1151,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1182,6 +1190,7 @@ export interface operations {
             };
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1213,6 +1222,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1244,6 +1254,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1275,6 +1286,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1306,6 +1318,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1341,6 +1354,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1372,6 +1386,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1407,6 +1422,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1438,6 +1454,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1473,6 +1490,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1508,6 +1526,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -1539,6 +1558,7 @@ export interface operations {
             query?: never;
             header?: {
                 authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
             };
             path: {
                 handle: string;
