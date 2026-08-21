@@ -456,6 +456,15 @@ export default function DesignGallery() {
           <AccountChip handle="@pending" state="unverified" />
           <AccountChip handle="@missing" state="not_found" />
         </div>
+        {/* Empty list: how AccountsField invites a brand-new user in. */}
+        <div className="flex flex-col gap-3">
+          <TagInput items={[]} onAdd={() => {}} onRemove={() => {}} />
+          <EmptyState
+            className="py-6"
+            title="Nobody on the list yet"
+            description="Add your favorite X accounts above, or import everyone you already follow in one go."
+          />
+        </div>
       </Section>
 
       <Section title="Badges and credits">

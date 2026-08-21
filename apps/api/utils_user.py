@@ -14,7 +14,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 from firebase_admin import firestore
 from backend import utils_firebase
-from config.prompt_config import DEFAULT_X_PROMPT, DEFAULT_X_ACCOUNTS
+from config.prompt_config import DEFAULT_X_PROMPT
 from utils import get_logger
 import stripe
 
@@ -114,8 +114,9 @@ def register_user_in_db_core(
             "newsletter_email": email,
         },
         "settings_X": {
-            "accounts": DEFAULT_X_ACCOUNTS,
-            "verified_accounts": DEFAULT_X_ACCOUNTS,
+            # Start empty: onboarding invites the user to build their own list.
+            "accounts": [],
+            "verified_accounts": [],
         },
         "TOS_accepted": TOS_accepted,
         "onboarded": False,
