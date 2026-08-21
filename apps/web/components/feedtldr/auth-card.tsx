@@ -1,6 +1,6 @@
 "use client";
 
-import { GoogleLogo } from "@phosphor-icons/react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -44,8 +44,13 @@ export function AuthCard({
             onClick={onGoogle}
             disabled={googleDisabled}
           >
-            <GoogleLogo
-              weight="bold"
+            {/* Google's brand G keeps its official colors (branding guide);
+                the button itself stays in our outline style. */}
+            <Image
+              src="/brand/google-logo.svg"
+              alt=""
+              width={16}
+              height={16}
               className={googleBusy ? "animate-pulse" : undefined}
             />{" "}
             {googleBusy ? "Connecting…" : googleLabel}

@@ -52,6 +52,8 @@ export default function LoginPage() {
       title="Welcome back"
       onGoogle={signIn}
       googleLabel="Continue with Google"
+      googleBusy={completing}
+      googleDisabled={busy || completing}
       footer={
         <p>
           New here?{" "}
