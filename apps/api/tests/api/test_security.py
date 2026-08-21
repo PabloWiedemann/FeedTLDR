@@ -1,7 +1,7 @@
 import time
 
 import pytest
-from fastapi import HTTPException
+from fastapi import BackgroundTasks, HTTPException
 from starlette.requests import Request
 
 from api import schemas, security
@@ -81,6 +81,7 @@ def test_new_registration_requires_verified_email(monkeypatch):
         auth.register(
             schemas.RegisterRequest(),
             request,
+            BackgroundTasks(),
             AuthUser(
                 uid="new-user",
                 email="person@example.com",

@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from firebase_admin import firestore
 
 from api import schemas
 from api.deps import AuthUser, get_current_user
+from api.services import notifications
 from api.security import (
     check_challenge_rate_limit,
     check_registration_rate_limit,
@@ -39,6 +40,7 @@ def signup_challenge(body: schemas.SignupChallengeRequest, request: Request):
 def register(
     body: schemas.RegisterRequest,
     request: Request,
+    background: BackgroundTasks,
     user: AuthUser = Depends(get_current_user),
 ):
     """Create the Firestore document for a verified Firebase Auth user.
@@ -64,4 +66,6 @@ def register(
         is_google_auth=body.is_google_auth,
         TOS_accepted=body.tos_accepted,
     )
+    # After the response: registration must never wait on (or fail with) email.
+    background.add_task(notifications.notify_signup, user.email, body.name)
     return schemas.RegisterResponse(created=True)
