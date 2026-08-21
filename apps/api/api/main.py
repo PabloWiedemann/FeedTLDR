@@ -106,7 +106,8 @@ app.add_middleware(
 
 @app.get("/healthz", tags=["health"])
 def healthz() -> dict:
-    return {"status": "ok"}
+    # RENDER_GIT_COMMIT is injected by Render; "unknown" means local dev.
+    return {"status": "ok", "commit": os.getenv("RENDER_GIT_COMMIT", "unknown")}
 
 
 for router in (auth, me, settings, feed, generations, chat, billing):

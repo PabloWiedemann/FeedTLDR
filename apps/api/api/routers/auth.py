@@ -68,4 +68,5 @@ def register(
     )
     # After the response: registration must never wait on (or fail with) email.
     background.add_task(notifications.notify_signup, user.email, body.name)
+    background.add_task(notifications.send_welcome_email, user.email, body.name)
     return schemas.RegisterResponse(created=True)

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { EnvelopeSimple } from "@phosphor-icons/react";
+import { EnvelopeSimple, ShieldCheck } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Logo } from "@/components/feedtldr/logo";
@@ -33,7 +33,10 @@ export default function VerifyEmailPage() {
   const [securityKey, setSecurityKey] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
 
-  async function completeAccount(silentIfPending = false) {
+  async function completeAccount(
+    silentIfPending = false,
+    token: string | null = turnstileToken
+  ) {
     setBusy(true);
     setNotice(null);
     try {
@@ -63,16 +66,16 @@ export default function VerifyEmailPage() {
             };
 
       if (turnstileConfigured && !pending.challenge) {
-        if (!turnstileToken) {
+        if (!token) {
           setNeedsChallenge(true);
+          // On the automatic first attempt the appearing checkbox says it
+          // all; the error text is only for an explicit button press.
+          if (silentIfPending) return;
           throw new Error("Complete the security check to finish signup.");
         }
         pending = {
           ...pending,
-          challenge: await requestSignupChallenge(
-            current.email ?? "",
-            turnstileToken
-          ),
+          challenge: await requestSignupChallenge(current.email ?? "", token),
         };
         savePendingSignup(pending);
       }
@@ -104,6 +107,8 @@ export default function VerifyEmailPage() {
     // completeAccount intentionally runs once after Firebase restores the user.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, user]);
+
+  const emailVerified = Boolean(user?.emailVerified);
 
   if (loading) {
     return (
@@ -137,20 +142,42 @@ export default function VerifyEmailPage() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <div className="mb-2 flex size-10 items-center justify-center rounded-full bg-pastel-blue text-pastel-blue-foreground">
-            <EnvelopeSimple className="size-5" aria-hidden="true" />
+            {emailVerified ? (
+              <ShieldCheck className="size-5" aria-hidden="true" />
+            ) : (
+              <EnvelopeSimple className="size-5" aria-hidden="true" />
+            )}
           </div>
-          <CardTitle>Verify your email</CardTitle>
+          <CardTitle>
+            {emailVerified ? "One last check" : "Verify your email"}
+          </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <p className="text-sm text-muted-foreground">
-            Check your inbox or spam folder for the link sent to{" "}
-            <strong className="break-all text-foreground">{user.email}</strong>.
-          </p>
+          {emailVerified ? (
+            <p className="text-sm text-muted-foreground">
+              You&apos;re signed in as{" "}
+              <strong className="break-all text-foreground">{user.email}</strong>
+              . Confirm you&apos;re human and we&apos;ll set up your account.
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Check your inbox or spam folder for the link sent to{" "}
+              <strong className="break-all text-foreground">{user.email}</strong>
+              .
+            </p>
+          )}
 
           {needsChallenge && (
             <Turnstile
               key={securityKey}
-              onTokenChange={setTurnstileToken}
+              onTokenChange={(token) => {
+                setTurnstileToken(token);
+                // Google users arrive pre-verified: the bot check is the last
+                // gate, so ticking it finishes signup without another press.
+                if (token && emailVerified && !busy) {
+                  void completeAccount(false, token);
+                }
+              }}
             />
           )}
 
@@ -165,23 +192,29 @@ export default function VerifyEmailPage() {
             disabled={busy || (needsChallenge && !turnstileToken)}
           >
             {busy && <Spinner />}
-            {busy ? "Checking…" : "Check verification"}
+            {busy
+              ? "Checking…"
+              : emailVerified
+                ? "Continue"
+                : "Check verification"}
           </Button>
-          <Button
-            variant="outline"
-            disabled={busy}
-            onClick={async () => {
-              setNotice(null);
-              try {
-                await sendVerification(user);
-                setNotice("Verification email sent.");
-              } catch {
-                setNotice("Unable to resend. Try again in a minute.");
-              }
-            }}
-          >
-            Resend email
-          </Button>
+          {!emailVerified && (
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={async () => {
+                setNotice(null);
+                try {
+                  await sendVerification(user);
+                  setNotice("Verification email sent.");
+                } catch {
+                  setNotice("Unable to resend. Try again in a minute.");
+                }
+              }}
+            >
+              Resend email
+            </Button>
+          )}
         </CardContent>
       </Card>
     </main>

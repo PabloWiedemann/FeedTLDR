@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { SealCheck } from "@phosphor-icons/react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldLabel } from "@/components/ui/field";
@@ -38,6 +40,9 @@ const LAST_STEP = STEPS.length - 1;
 const ACCOUNTS_STEP = 3;
 const EMAIL_STEP = 4;
 
+/** How long freshly-verified chips stay on screen before the card advances. */
+const VERIFIED_PAUSE_MS = 1200;
+
 /** The "About you" questions; answers land in customers/{uid}.onboarding_survey. */
 const SURVEY_QUESTIONS = [
   {
@@ -70,7 +75,6 @@ const SURVEY_QUESTIONS = [
     label: "What do you want to follow?",
     options: [
       "My product or brand",
-      "My industry",
       "AI & tech",
       "Finance & crypto",
       "News & politics",
@@ -200,6 +204,7 @@ export default function OnboardingPage() {
     ""
   );
   const [skipEmail, setSkipEmail] = useState(false);
+  const [advancing, setAdvancing] = useState(false);
 
   // Options shuffle per visit to spread the quick-tap bias evenly. The seed
   // only takes effect once auth resolves (client-only), so the first client
@@ -269,15 +274,27 @@ export default function OnboardingPage() {
     );
   }
 
-  /** Checks unchecked accounts against X, then moves on when one is found. */
+  /** Checks unchecked accounts against X, then moves on when one is found.
+   * Skipping with an empty list is fine — settings can fill it later. */
   function verifyAndContinue() {
+    if (!hasAccounts) {
+      toast("No accounts yet — you can add your list anytime in Settings.");
+      goTo(EMAIL_STEP);
+      return;
+    }
     if (unverifiedCount === 0) {
       goTo(EMAIL_STEP);
       return;
     }
     verifyAccounts.mutate(undefined, {
       onSuccess: (data) => {
-        if (data.verified_accounts.length > 0) goTo(EMAIL_STEP);
+        if (data.verified_accounts.length === 0) return;
+        // Let the chips visibly turn green before the card changes.
+        setAdvancing(true);
+        window.setTimeout(() => {
+          setAdvancing(false);
+          goTo(EMAIL_STEP);
+        }, VERIFIED_PAUSE_MS);
       },
     });
   }
@@ -411,10 +428,17 @@ export default function OnboardingPage() {
           {step === ACCOUNTS_STEP && (
             <Button
               onClick={verifyAndContinue}
-              disabled={!hasAccounts || verifyAccounts.isPending}
+              disabled={verifyAccounts.isPending || advancing}
             >
               {verifyAccounts.isPending && <Spinner />}
-              {unverifiedCount > 0 ? "Verify & continue" : "Continue"}
+              {advancing && <SealCheck />}
+              {advancing
+                ? "Verified"
+                : !hasAccounts
+                  ? "Skip for now"
+                  : unverifiedCount > 0
+                    ? "Verify & continue"
+                    : "Continue"}
             </Button>
           )}
           {step === EMAIL_STEP && (

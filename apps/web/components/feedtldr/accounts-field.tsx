@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "./empty-state";
 import { Notice } from "./notice";
 import { Spinner } from "./spinner";
 import { TagInput, type TagItem } from "./tag-input";
@@ -134,6 +135,13 @@ export function AccountsField({
           ) : undefined
         }
       />
+      {items.length === 0 && (
+        <EmptyState
+          className="py-6"
+          title="Nobody on the list yet"
+          description="Add your favorite X accounts above, or import everyone you already follow in one go."
+        />
+      )}
       {atLimit && (
         <Notice tone="warning" className="text-xs">
           Your plan allows up to {maxAccounts} accounts. Remove some or upgrade
