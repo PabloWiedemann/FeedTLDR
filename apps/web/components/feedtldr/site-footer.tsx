@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 const links = [
-  { href: "/about", label: "About" },
+  // /about is hidden until its copy is rewritten; restore the link with it.
   { href: "/pricing", label: "Pricing" },
   { href: "/terms", label: "Terms of use" },
   { href: "/privacy", label: "Privacy" },
