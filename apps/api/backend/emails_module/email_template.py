@@ -144,7 +144,7 @@ def get_email_footer():
             <a href="https://feedtldr.com/settings" style="color: {MUTED}; text-decoration: underline;">Manage email preferences</a> |
             <a href="https://feedtldr.com/settings" style="color: {MUTED}; text-decoration: underline;">Unsubscribe</a>
         </p>
-        <p style="margin: 0;">Please do not reply to this email. For support, contact us at <a href="mailto:info@toriml.com" style="color: {MUTED}; text-decoration: underline;">info@toriml.com</a>.</p>
+        <p style="margin: 0;">Please do not reply to this email. For support, contact us at <a href="mailto:support@feedtldr.com" style="color: {MUTED}; text-decoration: underline;">support@feedtldr.com</a>.</p>
     </div>
     """
 
@@ -211,7 +211,7 @@ def get_delete_account_content():
     <div style="text-align: center; padding: 24px 0;">
         <h2 style="color: {INK}; font-size: 22px; line-height: 1.3; margin: 0 0 12px;">Your FeedTLDR account has been deleted</h2>
         <p style="line-height: 1.6; margin: 0 0 8px;">We're sorry to see you go. Let us know if there's anything we could have done to keep you on board.</p>
-        <p style="line-height: 1.6; margin: 0;">You can <a href="mailto:info@toriml.com" style="color: {FOREST};">contact us here</a>.</p>
+        <p style="line-height: 1.6; margin: 0;">You can <a href="mailto:support@feedtldr.com" style="color: {FOREST};">contact us here</a>.</p>
     </div>
     """
 
@@ -224,7 +224,7 @@ def get_free_plan_end_notification_content():
         <p style="line-height: 1.6; margin: 0 0 20px;">Your account and existing summaries are still available. Choose Basic or Pro to generate new summaries, use chat, and restart your weekday newsletters.</p>
         <a href="https://feedtldr.com/pricing" style="{BUTTON_STYLE}">Compare plans</a>
         <p style="margin: 24px 0 0; font-size: 14px; color: {MUTED};">
-            If you have any questions about our plans or need assistance, please <a href="mailto:info@toriml.com" style="color: {FOREST};">contact our support team</a>.
+            If you have any questions about our plans or need assistance, please <a href="mailto:support@feedtldr.com" style="color: {FOREST};">contact our support team</a>.
         </p>
     </div>
     """

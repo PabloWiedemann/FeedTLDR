@@ -113,7 +113,7 @@ You agree that any claim arising out of or related to these Terms or the Service
 ## 17. Contact Us
 
 If you have questions or concerns about these Terms or our Services, please contact us at:
-info@toriml.com
+support@feedtldr.com
 `;
 
 /** About page copy, ported from the legacy pages/about.py. */
