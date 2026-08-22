@@ -3,9 +3,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { track } from "@/lib/analytics";
+import { bareHandle, normalizeHandle } from "@/lib/handles";
 import { api, unwrap } from "./client";
 import { queryKeys } from "./query-keys";
 import type {
+  Accounts,
   ChatContext,
   ChatMessage,
   ChatResponse,
@@ -61,17 +63,43 @@ export function useStartGeneration() {
   });
 }
 
+/**
+ * Optimistic: chips appear/disappear immediately; the server round trip
+ * only confirms, and an error rolls the list back (plus the usual toast).
+ */
 export function useAddAccounts() {
+  const queryClient = useQueryClient();
   const invalidate = useInvalidator();
   return useMutation({
     mutationFn: async (handles: string[]) =>
       unwrap(await api.POST("/v1/settings/accounts", { body: { handles } })),
-    onSuccess: () => invalidate([queryKeys.accounts]),
-    onError: toastError,
+    onMutate: async (handles) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.accounts });
+      const previous = queryClient.getQueryData<Accounts>(queryKeys.accounts);
+      if (previous) {
+        const known = new Set(previous.accounts.map(bareHandle));
+        const added = handles
+          .map(normalizeHandle)
+          .filter((handle) => handle !== "@" && !known.has(bareHandle(handle)));
+        queryClient.setQueryData<Accounts>(queryKeys.accounts, {
+          ...previous,
+          accounts: [...previous.accounts, ...added],
+        });
+      }
+      return { previous };
+    },
+    onError: (error, _handles, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKeys.accounts, context.previous);
+      }
+      toastError(error);
+    },
+    onSettled: () => invalidate([queryKeys.accounts]),
   });
 }
 
 export function useRemoveAccount() {
+  const queryClient = useQueryClient();
   const invalidate = useInvalidator();
   return useMutation({
     mutationFn: async (handle: string) =>
@@ -80,8 +108,27 @@ export function useRemoveAccount() {
           params: { path: { handle: handle.replace(/^@/, "") } },
         })
       ),
-    onSuccess: () => invalidate([queryKeys.accounts]),
-    onError: toastError,
+    onMutate: async (handle) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.accounts });
+      const previous = queryClient.getQueryData<Accounts>(queryKeys.accounts);
+      if (previous) {
+        const removed = bareHandle(handle);
+        const keep = (value: string) => bareHandle(value) !== removed;
+        queryClient.setQueryData<Accounts>(queryKeys.accounts, {
+          ...previous,
+          accounts: previous.accounts.filter(keep),
+          verified_accounts: previous.verified_accounts.filter(keep),
+        });
+      }
+      return { previous };
+    },
+    onError: (error, _handle, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKeys.accounts, context.previous);
+      }
+      toastError(error);
+    },
+    onSettled: () => invalidate([queryKeys.accounts]),
   });
 }
 
