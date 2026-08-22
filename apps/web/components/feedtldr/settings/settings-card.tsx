@@ -7,6 +7,11 @@ import {
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
+export const SETTINGS_CARD_HEIGHT = {
+  accounts: "md:h-[calc(100dvh-15rem)] md:min-h-120",
+  aiPrompt: "md:h-[calc(100dvh-13.5rem)] md:min-h-96",
+} as const;
+
 /** A settings group: bordered card on a soft shadow (DESIGN.md §8). */
 export function SettingsCard({
   title,
