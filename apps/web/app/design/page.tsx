@@ -49,7 +49,9 @@ import {
 } from "@/components/feedtldr/chat-panel";
 import { AudioPill } from "@/components/feedtldr/audio-pill";
 import { CreditBadge } from "@/components/feedtldr/credit-badge";
+import { DemoCallout } from "@/components/feedtldr/demo-callout";
 import { EmptyState } from "@/components/feedtldr/empty-state";
+import { GettingStarted } from "@/components/feedtldr/getting-started";
 import { GenerationProgress } from "@/components/feedtldr/generation-progress";
 import { Logo } from "@/components/feedtldr/logo";
 import { Notice } from "@/components/feedtldr/notice";
@@ -378,6 +380,28 @@ export default function DesignGallery() {
             All accounts verified.
           </Notice>
           <Notice tone="error">Verify at least one account first.</Notice>
+        </div>
+      </Section>
+
+      <Section title="Getting started checklist">
+        <div className="flex flex-col gap-6">
+          <GettingStarted accountsDone={false} newsletterDone={false} />
+          <GettingStarted accountsDone newsletterDone={false} />
+          <GettingStarted accountsDone newsletterDone />
+        </div>
+      </Section>
+
+      <Section title="Demo callout flap">
+        {/* The flap tucks under the card that follows it (no gap between). */}
+        <div className="flex flex-col">
+          <DemoCallout />
+          <Card className="gap-2 border-none p-6 sm:p-8">
+            <h3 className="text-title">Example brief</h3>
+            <p className="text-sm text-muted-foreground">
+              The summary card content sits on top of the flap&apos;s lower
+              padding.
+            </p>
+          </Card>
         </div>
       </Section>
 

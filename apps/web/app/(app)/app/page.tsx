@@ -11,10 +11,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AppBar } from "@/components/feedtldr/app-bar";
 import { AudioPill } from "@/components/feedtldr/audio-pill";
 import { ChatPanel } from "@/components/feedtldr/chat-panel";
+import { DemoCallout } from "@/components/feedtldr/demo-callout";
 import { EmptyState } from "@/components/feedtldr/empty-state";
+import { GettingStarted } from "@/components/feedtldr/getting-started";
 import { GenerateDialog } from "@/components/feedtldr/generate-dialog";
 import { GenerationProgress } from "@/components/feedtldr/generation-progress";
-import { Notice } from "@/components/feedtldr/notice";
 import { PageHeader } from "@/components/feedtldr/page-header";
 import {
   PostPreviews,
@@ -24,9 +25,11 @@ import { SourceDataView } from "@/components/feedtldr/source-data";
 import { SummaryProse } from "@/components/feedtldr/summary-prose";
 import { track } from "@/lib/analytics";
 import {
+  useAccounts,
   useFeed,
   useGenerationStatus,
   useMe,
+  useSettings,
   useSourceData,
 } from "@/lib/api/queries";
 import { cn } from "@/lib/utils";
@@ -150,6 +153,14 @@ export default function FeedPage() {
   const me = useMe();
   const feed = useFeed();
   const status = useGenerationStatus();
+  // The demo phase drives a setup checklist: these only load while the feed
+  // is still the example one.
+  const showingDemo = feed.data?.is_demo === true;
+  const accounts = useAccounts(showingDemo);
+  const settings = useSettings(showingDemo);
+  const accountsDone = (accounts.data?.accounts.length ?? 0) > 0;
+  const newsletterDone = (settings.data?.newsletter_email ?? "") !== "";
+  const setupLoaded = accounts.data !== undefined && settings.data !== undefined;
 
   const [generateOpen, setGenerateOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
@@ -257,18 +268,15 @@ export default function FeedPage() {
           />
         ) : feed.data ? (
           <div className="flex flex-col gap-6">
-            {feed.data.is_demo && !generating && (
-              <Notice
-                tone="info"
-                filled
-                title="This is a demo summary from real X accounts."
-              >
-                <p>
-                  Generate your first feed summary with the Re-generate button,
-                  or add your accounts in settings first.
-                </p>
-              </Notice>
-            )}
+            {feed.data.is_demo &&
+              !generating &&
+              setupLoaded &&
+              !(accountsDone && newsletterDone) && (
+                <GettingStarted
+                  accountsDone={accountsDone}
+                  newsletterDone={newsletterDone}
+                />
+              )}
 
             {generating ? (
               <Card className="border-none p-6 sm:p-8">
@@ -284,9 +292,13 @@ export default function FeedPage() {
               </Card>
             ) : (
               <>
-                <Card className="gap-8 border-none p-6 sm:p-10 md:p-12">
+                {/* No gap between callout and card: the card overlaps the
+                    callout's lower padding so it reads as a tucked flap. */}
+                <div className="flex flex-col">
+                  {feed.data.is_demo && <DemoCallout />}
+                  <Card className="gap-8 border-none p-6 sm:p-10 md:p-12">
                   <PageHeader
-                    title={feed.data.is_demo ? "Demo Feed" : "Today's Feed"}
+                    title={feed.data.is_demo ? "Example brief" : "Today's Feed"}
                     description={
                       feed.data.last_generation_time_local
                         ? `Generated on ${feed.data.last_generation_time_local}`
@@ -300,7 +312,8 @@ export default function FeedPage() {
                   <PostPreviews posts={posts}>
                     <SummaryProse html={feed.data.summary_html} />
                   </PostPreviews>
-                </Card>
+                  </Card>
+                </div>
                 {!feed.data.is_demo && <SourceDataDisclosure />}
               </>
             )}
