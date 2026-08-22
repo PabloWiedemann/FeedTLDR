@@ -21,10 +21,31 @@ import { useGenerationCost, useSettings } from "@/lib/api/queries";
 import { useStartGeneration } from "@/lib/api/mutations";
 import { creditsLeft } from "@/lib/credits";
 
+function AccountsSettingsLink({ children }: { children: React.ReactNode }) {
+  return (
+    <Link
+      href="/app/settings/accounts"
+      className="text-link underline underline-offset-2"
+    >
+      {children}
+    </Link>
+  );
+}
+
 /** Why the Generate button is unavailable, and what to do about it. */
 const BLOCKER_COPY: Record<string, React.ReactNode> = {
-  no_accounts: "Add accounts in settings before generating.",
-  no_verified_accounts: "Verify at least one account in settings first.",
+  no_accounts: (
+    <>
+      You have no accounts on your list, so there is nothing to summarize.{" "}
+      <AccountsSettingsLink>Add accounts</AccountsSettingsLink> first.
+    </>
+  ),
+  no_verified_accounts: (
+    <>
+      Your accounts are not verified.{" "}
+      <AccountsSettingsLink>Verify your accounts</AccountsSettingsLink> first.
+    </>
+  ),
   insufficient_credits: (
     <>
       You have used the credits available for this action.{" "}

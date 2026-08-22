@@ -40,7 +40,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { AccountChip } from "@/components/feedtldr/account-chip";
+import { AccountChip, SuggestionChip } from "@/components/feedtldr/account-chip";
 import { AppBar } from "@/components/feedtldr/app-bar";
 import {
   ChatComposer,
@@ -385,9 +385,9 @@ export default function DesignGallery() {
 
       <Section title="Getting started checklist">
         <div className="flex flex-col gap-6">
-          <GettingStarted accountsDone={false} newsletterDone={false} />
-          <GettingStarted accountsDone newsletterDone={false} />
-          <GettingStarted accountsDone newsletterDone />
+          <GettingStarted accountsDone={false} newsletterDone={false} onGenerate={() => toast("Generate dialog opens here")} onDismiss={() => toast("Dismissed")} />
+          <GettingStarted accountsDone newsletterDone={false} onGenerate={() => toast("Generate dialog opens here")} onDismiss={() => toast("Dismissed")} />
+          <GettingStarted accountsDone newsletterDone onGenerate={() => toast("Generate dialog opens here")} onDismiss={() => toast("Dismissed")} />
         </div>
       </Section>
 
@@ -480,6 +480,23 @@ export default function DesignGallery() {
           <AccountChip handle="@pending" state="unverified" />
           <AccountChip handle="@missing" state="not_found" />
         </div>
+        {/* Suggestions: dashed outline separates them from list chips. */}
+        <div className="flex flex-col gap-3">
+          <p className="text-sm font-medium text-muted-foreground">
+            Suggested for you
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <SuggestionChip
+              handle="karpathy"
+              onAdd={(handle) => toast.success(`Added @${handle}`)}
+            />
+            <SuggestionChip
+              handle="paulg"
+              onAdd={(handle) => toast.success(`Added @${handle}`)}
+            />
+            <SuggestionChip handle="disabled" onAdd={() => {}} disabled />
+          </div>
+        </div>
         {/* Empty list: how AccountsField invites a brand-new user in. */}
         <div className="flex flex-col gap-3">
           <TagInput items={[]} onAdd={() => {}} onRemove={() => {}} />
@@ -518,6 +535,18 @@ export default function DesignGallery() {
             onRegenerate={() => toast.success("Re-generate pressed")}
             onToggleChat={() => toast.info("Chat panel would toggle")}
             chatOpen={false}
+          />
+        </div>
+        {/* Blocked state: no accounts yet, Re-generate disabled + tooltip. */}
+        <div className="rounded-card border bg-background">
+          <AppBar
+            email="pablo@example.com"
+            name="Pablo"
+            plan="free"
+            onRegenerate={() => toast.success("Re-generate pressed")}
+            onToggleChat={() => toast.info("Chat panel would toggle")}
+            chatOpen={false}
+            regenerateBlockedReason="You have no accounts to summarize. Add accounts first."
           />
         </div>
       </Section>

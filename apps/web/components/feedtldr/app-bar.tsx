@@ -44,6 +44,7 @@ export function AppBar({
   onToggleChat,
   chatOpen,
   regenerateDisabled,
+  regenerateBlockedReason,
 }: {
   email: string;
   name?: string;
@@ -51,6 +52,8 @@ export function AppBar({
   onRegenerate: () => void;
   onToggleChat: () => void;
   chatOpen: boolean;
+  /** When set, Re-generate renders disabled with this tooltip. */
+  regenerateBlockedReason?: string;
   regenerateDisabled?: boolean;
 }) {
   const router = useRouter();
@@ -80,7 +83,7 @@ export function AppBar({
               </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-60 p-2">
+          <DropdownMenuContent align="start" className="min-w-60 p-2">
             <DropdownMenuLabel className="flex min-w-0 flex-col gap-2 px-3 py-3">
               <div className="flex min-w-0 flex-col gap-1">
                 <span className="truncate">{name || email}</span>
@@ -134,14 +137,11 @@ export function AppBar({
         </TooltipProvider>
       </div>
       <div className="flex items-center gap-2 sm:gap-3">
-        <Button
-          onClick={onRegenerate}
+        <RegenerateButton
+          onRegenerate={onRegenerate}
           disabled={regenerateDisabled}
-          aria-label="Re-generate summary"
-        >
-          <ArrowsClockwise />
-          <span className="hidden sm:inline">Re-generate</span>
-        </Button>
+          blockedReason={regenerateBlockedReason}
+        />
         <Button
           variant="outline"
           onClick={onToggleChat}
@@ -153,5 +153,50 @@ export function AppBar({
         </Button>
       </div>
     </GlassHeader>
+  );
+}
+
+/** Re-generate action; a blocked reason renders it disabled with a tooltip. */
+function RegenerateButton({
+  onRegenerate,
+  disabled,
+  blockedReason,
+}: {
+  onRegenerate: () => void;
+  disabled?: boolean;
+  blockedReason?: string;
+}) {
+  const content = (
+    <>
+      <ArrowsClockwise />
+      <span className="hidden sm:inline">Re-generate</span>
+    </>
+  );
+  if (blockedReason) {
+    return (
+      <TooltipProvider delayDuration={300}>
+        <Tooltip>
+          {/* A disabled button emits no hover/focus events, so the
+              focusable wrapper carries the tooltip trigger. */}
+          <TooltipTrigger asChild>
+            <span tabIndex={0} className="focus-ring rounded-full">
+              <Button disabled aria-label="Re-generate summary">
+                {content}
+              </Button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>{blockedReason}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+  return (
+    <Button
+      onClick={onRegenerate}
+      disabled={disabled}
+      aria-label="Re-generate summary"
+    >
+      {content}
+    </Button>
   );
 }

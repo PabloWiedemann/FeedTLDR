@@ -6,6 +6,7 @@ from api.constants import (
     FIELD_ACCOUNTS,
     FIELD_AI_PROMPT,
     FIELD_NEWSLETTER_EMAIL,
+    FIELD_ONBOARDING_SURVEY,
     FIELD_TIMEZONE,
     FIELD_VERIFIED_ACCOUNTS,
 )
@@ -65,6 +66,25 @@ def get_accounts(user: UserContext = Depends(get_user_context)):
         accounts=data.get(FIELD_ACCOUNTS) or [],
         verified_accounts=data.get(FIELD_VERIFIED_ACCOUNTS) or [],
         max_accounts=PLAN_PROPERTIES[user.plan]["limits"]["max_followers"],
+    )
+
+
+@router.get(
+    "/accounts/suggestions",
+    response_model=schemas.AccountSuggestionsResponse,
+)
+def get_account_suggestions(user: UserContext = Depends(get_user_context)):
+    """Accounts worth following, picked from the onboarding answers."""
+    data = (
+        utils_firebase.get_specific_user_data(
+            user.uid, [FIELD_ACCOUNTS, FIELD_ONBOARDING_SURVEY]
+        )
+        or {}
+    )
+    return schemas.AccountSuggestionsResponse(
+        suggestions=services.suggested_for(
+            data.get(FIELD_ONBOARDING_SURVEY), data.get(FIELD_ACCOUNTS) or []
+        )
     )
 
 

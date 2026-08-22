@@ -44,10 +44,31 @@ ERROR_INSUFFICIENT_CREDITS = "insufficient_credits"
 
 MAX_IMPORTED_FOLLOWEES = 1000
 
+# ---------- onboarding survey answers ----------
+# Mirrored by the web SURVEY_QUESTIONS; keep in sync when the wizard's
+# options change.
+
+ONBOARDING_ROLES = {
+    "founder": "Founder",
+    "engineer": "Engineer",
+    "marketer": "Marketer",
+    "investor": "Investor",
+    "creator": "Creator",
+    "student": "Student",
+}
+ONBOARDING_TOPICS = {
+    "product": "My product or brand",
+    "ai_tech": "AI & tech",
+    "finance_crypto": "Finance & crypto",
+    "news_politics": "News & politics",
+    "sports": "Sports",
+}
+
 # ---------- Firestore field paths ----------
 
 FIELD_PLAN = "plan"
 FIELD_STRIPE_CUSTOMER_ID = "stripe_customer_id"
+FIELD_ONBOARDING_SURVEY = "onboarding_survey"
 FIELD_ACCOUNTS = "settings_X.accounts"
 FIELD_VERIFIED_ACCOUNTS = "settings_X.verified_accounts"
 FIELD_TIMEZONE = "settings_global.timezone"

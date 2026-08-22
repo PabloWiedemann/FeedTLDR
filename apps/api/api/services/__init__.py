@@ -16,6 +16,7 @@ from api.services.accounts import (
 )
 from api.services.chat import chat_completion
 from api.services.feed import get_demo_feed, get_feed, get_source_data
+from api.services.suggestions import suggested_for
 from api.services.generation import (
     compute_generation_cost,
     generation_blockers,
@@ -43,4 +44,5 @@ __all__ = [
     "start_generation",
     "sync_plan_with_stripe",
     "verify_accounts",
+    "suggested_for",
 ]

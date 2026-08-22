@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CaretDown } from "@phosphor-icons/react";
@@ -143,6 +144,45 @@ function useTermsAcceptance(accepted: boolean | undefined, onboarded: boolean | 
 /** Chat panel width bounds (px); the user drags the card's left edge. */
 const CHAT_WIDTH = { min: 380, max: 600, default: 448 } as const;
 
+/** Remembers (per browser) that the setup checklist was dismissed. */
+const SETUP_DISMISSED_KEY = "feedtldr.setup-dismissed";
+
+/**
+ * Demo-phase setup state: checklist progress plus the per-browser dismissal
+ * of the checklist card. Only queries while the feed is still the example.
+ */
+function useDemoSetup(active: boolean) {
+  const accounts = useAccounts(active);
+  const settings = useSettings(active);
+  const [dismissed, setDismissed] = useState(() => {
+    // Safe as a lazy initializer: the checklist is never in the prerendered
+    // HTML (it waits on query data), so no hydration mismatch is possible.
+    if (typeof window === "undefined") return false;
+    try {
+      return localStorage.getItem(SETUP_DISMISSED_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  function dismiss() {
+    setDismissed(true);
+    try {
+      localStorage.setItem(SETUP_DISMISSED_KEY, "1");
+    } catch {
+      // Dismissal then lasts for this visit only.
+    }
+  }
+
+  return {
+    accountsDone: (accounts.data?.accounts.length ?? 0) > 0,
+    newsletterDone: (settings.data?.newsletter_email ?? "") !== "",
+    loaded: accounts.data !== undefined && settings.data !== undefined,
+    dismissed,
+    dismiss,
+  };
+}
+
 function clampChatWidth(width: number) {
   return Math.min(CHAT_WIDTH.max, Math.max(CHAT_WIDTH.min, width));
 }
@@ -153,14 +193,8 @@ export default function FeedPage() {
   const me = useMe();
   const feed = useFeed();
   const status = useGenerationStatus();
-  // The demo phase drives a setup checklist: these only load while the feed
-  // is still the example one.
   const showingDemo = feed.data?.is_demo === true;
-  const accounts = useAccounts(showingDemo);
-  const settings = useSettings(showingDemo);
-  const accountsDone = (accounts.data?.accounts.length ?? 0) > 0;
-  const newsletterDone = (settings.data?.newsletter_email ?? "") !== "";
-  const setupLoaded = accounts.data !== undefined && settings.data !== undefined;
+  const setup = useDemoSetup(showingDemo);
 
   const [generateOpen, setGenerateOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
@@ -251,10 +285,17 @@ export default function FeedPage() {
           onToggleChat={() => setChatOpen((value) => !value)}
           chatOpen={chatOpen}
           regenerateDisabled={generating}
+          regenerateBlockedReason={
+            showingDemo && setup.loaded && !setup.accountsDone
+              ? "You have no accounts to summarize. Add accounts first."
+              : undefined
+          }
         />
 
         <main className="mx-auto w-full max-w-4xl min-w-0 flex-1 px-4 pt-8 pb-24 sm:px-6 sm:pt-12">
-        {feed.isLoading || me.isLoading ? (
+        {feed.isLoading ||
+        me.isLoading ||
+        (feed.data?.is_demo && !generating && !setup.loaded) ? (
           <FeedSkeleton />
         ) : feed.isError ? (
           <EmptyState
@@ -267,14 +308,28 @@ export default function FeedPage() {
             }
           />
         ) : feed.data ? (
+          feed.data.is_demo && !generating && !setup.accountsDone ? (
+            // Nothing to summarize yet: no example noise, one clear next step.
+            <EmptyState
+              title="Add accounts to follow"
+              description="Your daily brief is a summary of their posts. Without accounts, there is nothing to summarize."
+              action={
+                <Button asChild size="lg">
+                  <Link href="/app/settings/accounts">Add accounts</Link>
+                </Button>
+              }
+            />
+          ) : (
           <div className="flex flex-col gap-6">
             {feed.data.is_demo &&
               !generating &&
-              setupLoaded &&
-              !(accountsDone && newsletterDone) && (
+              setup.accountsDone &&
+              !setup.dismissed && (
                 <GettingStarted
-                  accountsDone={accountsDone}
-                  newsletterDone={newsletterDone}
+                  accountsDone={setup.accountsDone}
+                  newsletterDone={setup.newsletterDone}
+                  onGenerate={() => setGenerateOpen(true)}
+                  onDismiss={setup.dismiss}
                 />
               )}
 
@@ -297,27 +352,30 @@ export default function FeedPage() {
                 <div className="flex flex-col">
                   {feed.data.is_demo && <DemoCallout />}
                   <Card className="gap-8 border-none p-6 sm:p-10 md:p-12">
-                  <PageHeader
-                    title={feed.data.is_demo ? "Example brief" : "Today's Feed"}
-                    description={
-                      feed.data.last_generation_time_local
-                        ? `Generated on ${feed.data.last_generation_time_local}`
-                        : undefined
-                    }
-                  >
-                    {feed.data.audio_url && (
-                      <AudioPill src={feed.data.audio_url} className="pt-1" />
-                    )}
-                  </PageHeader>
-                  <PostPreviews posts={posts}>
-                    <SummaryProse html={feed.data.summary_html} />
-                  </PostPreviews>
+                    <PageHeader
+                      title={
+                        feed.data.is_demo ? "Example brief" : "Today's Feed"
+                      }
+                      description={
+                        feed.data.last_generation_time_local
+                          ? `Generated on ${feed.data.last_generation_time_local}`
+                          : undefined
+                      }
+                    >
+                      {feed.data.audio_url && (
+                        <AudioPill src={feed.data.audio_url} className="pt-1" />
+                      )}
+                    </PageHeader>
+                    <PostPreviews posts={posts}>
+                      <SummaryProse html={feed.data.summary_html} />
+                    </PostPreviews>
                   </Card>
                 </div>
                 {!feed.data.is_demo && <SourceDataDisclosure />}
               </>
             )}
           </div>
+          )
         ) : null}
         </main>
       </div>
