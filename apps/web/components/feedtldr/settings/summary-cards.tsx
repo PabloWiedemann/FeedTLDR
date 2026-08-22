@@ -23,7 +23,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { AccountsField } from "../accounts-field";
-import { SettingsCard } from "./settings-card";
+import { SETTINGS_CARD_HEIGHT, SettingsCard } from "./settings-card";
 import { useSettings } from "@/lib/api/queries";
 import { useUpdateSettings } from "@/lib/api/mutations";
 import { DEFAULT_TIMEZONE, TIMEZONES, timezoneLabel } from "@/lib/timezones";
@@ -34,7 +34,7 @@ export function AccountsCard() {
   return (
     <SettingsCard
       description="Verify checks that each account exists on X."
-      className="md:h-[calc(100dvh-15rem)]"
+      className={SETTINGS_CARD_HEIGHT.accounts}
       contentClassName="min-h-0 flex-1"
     >
       <AccountsField
@@ -138,7 +138,7 @@ export function AiPromptCard() {
   if (settings.isLoading) {
     return (
       <SettingsCard
-        className="md:h-[calc(100dvh-13.5rem)]"
+        className={SETTINGS_CARD_HEIGHT.aiPrompt}
         contentClassName="min-h-0 flex-1"
       >
         <Skeleton className="min-h-64 w-full flex-1 rounded-field" />
@@ -148,7 +148,7 @@ export function AiPromptCard() {
 
   return (
     <SettingsCard
-      className="md:h-[calc(100dvh-13.5rem)]"
+      className={SETTINGS_CARD_HEIGHT.aiPrompt}
       contentClassName="min-h-0 flex-1"
     >
       <Textarea

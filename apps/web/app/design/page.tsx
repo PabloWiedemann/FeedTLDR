@@ -63,6 +63,10 @@ import { SourceDataTable } from "@/components/feedtldr/source-data-table";
 import { Spinner } from "@/components/feedtldr/spinner";
 import { StatCard } from "@/components/feedtldr/stat-card";
 import { PostPreviews } from "@/components/feedtldr/post-previews";
+import {
+  SETTINGS_CARD_HEIGHT,
+  SettingsCard,
+} from "@/components/feedtldr/settings/settings-card";
 import { SummaryProse } from "@/components/feedtldr/summary-prose";
 import { TagInput, type TagItem } from "@/components/feedtldr/tag-input";
 import { UsageSummary } from "@/components/feedtldr/usage-summary";
@@ -354,6 +358,52 @@ export default function DesignGallery() {
             <Switch id="demo-switch" defaultChecked />
           </Field>
         </FieldGroup>
+      </Section>
+
+      <Section title="Viewport-height settings cards">
+        <div className="flex flex-col gap-6">
+          <SettingsCard
+            description="Verify checks that each account exists on X."
+            className={SETTINGS_CARD_HEIGHT.accounts}
+            contentClassName="min-h-0 flex-1"
+          >
+            <div className="flex min-h-0 flex-1 flex-col gap-3">
+              <TagInput
+                items={[]}
+                onAdd={() => {}}
+                onRemove={() => {}}
+                className="min-h-0 flex-1"
+                listFooter={
+                  <Button type="button" variant="outline" size="sm">
+                    Import from an account
+                  </Button>
+                }
+              />
+              <EmptyState
+                className="py-6"
+                title="Nobody on the list yet"
+                description="Add your favorite X accounts above, or import everyone you already follow in one go."
+              />
+            </div>
+          </SettingsCard>
+
+          <SettingsCard
+            className={SETTINGS_CARD_HEIGHT.aiPrompt}
+            contentClassName="min-h-0 flex-1"
+          >
+            <Textarea
+              readOnly
+              value="Focus on product launches, practical AI research, and thoughtful industry analysis."
+              aria-label="Custom AI prompt preview"
+              className="max-h-none min-h-64 flex-1 resize-none bg-card"
+            />
+            <div className="flex justify-end">
+              <Button type="button" variant="outline" size="sm">
+                Edit
+              </Button>
+            </div>
+          </SettingsCard>
+        </div>
       </Section>
 
       <Section title="Toggle group">
