@@ -1,12 +1,12 @@
 "use client";
 
-import { Plus, X } from "@phosphor-icons/react";
+import { Plus, Warning, X } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 export type AccountState = "verified" | "unverified" | "not_found";
 
 const stateStyles: Record<AccountState, string> = {
-  verified: "bg-pastel-green text-pastel-green-foreground",
+  verified: "bg-card text-foreground",
   unverified: "bg-pastel-yellow text-pastel-yellow-foreground",
   not_found: "bg-pastel-red text-pastel-red-foreground",
 };
@@ -35,6 +35,9 @@ export function AccountChip({
       )}
       title={`${handle}: ${stateLabel[state]}`}
     >
+      {state === "not_found" && (
+        <Warning weight="fill" className="size-3.5" aria-hidden="true" />
+      )}
       {handle}
       {onRemove && (
         <button
@@ -56,17 +59,22 @@ export function SuggestionChip({
   handle,
   onAdd,
   disabled = false,
+  className,
 }: {
   handle: string;
   onAdd: (handle: string) => void;
   disabled?: boolean;
+  className?: string;
 }) {
   return (
     <button
       type="button"
       onClick={() => onAdd(handle)}
       disabled={disabled}
-      className="focus-ring press inline-flex h-8 items-center gap-1.5 rounded-full border border-dashed ps-2.5 pe-3 text-sm font-medium text-muted-foreground transition-colors duration-150 ease-brand hover:border-solid hover:bg-accent hover:text-foreground disabled:opacity-50"
+      className={cn(
+        "focus-ring press inline-flex h-8 items-center gap-1.5 rounded-full border border-dashed ps-2.5 pe-3 text-sm font-medium text-muted-foreground transition-colors duration-150 ease-brand hover:border-solid hover:bg-accent hover:text-foreground disabled:opacity-50",
+        className
+      )}
     >
       <Plus className="size-3.5" aria-hidden="true" />@{handle}
     </button>

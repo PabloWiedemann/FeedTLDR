@@ -17,7 +17,7 @@ export function TagInput({
   items,
   onAdd,
   onRemove,
-  placeholder = "Enter an account and press Enter (e.g. @elonmusk)",
+  placeholder = "Enter an account or paste its profile link (e.g. @elonmusk)",
   disabled,
   listFooter,
   listClassName,

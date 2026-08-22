@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { DownloadSimple, SealCheck, Trash } from "@phosphor-icons/react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,7 +19,7 @@ import { Spinner } from "./spinner";
 import { SuggestionChip } from "./account-chip";
 import { TagInput, type TagItem } from "./tag-input";
 import { useAccounts, useAccountSuggestions } from "@/lib/api/queries";
-import { bareHandle } from "@/lib/handles";
+import { bareHandle, handleFromInput } from "@/lib/handles";
 import { cn } from "@/lib/utils";
 import {
   useAddAccounts,
@@ -139,7 +140,16 @@ export function AccountsField({
     <div className={cn("flex min-h-0 flex-col gap-3", className)}>
       <TagInput
         items={items}
-        onAdd={(values) => addAccounts.mutate(values)}
+        onAdd={(values) => {
+          // Pasted profile links become handles; other URLs are refused.
+          const handles = values
+            .map(handleFromInput)
+            .filter((value): value is string => value !== null);
+          if (handles.length < values.length) {
+            toast.error("This link does not go to a profile.");
+          }
+          if (handles.length > 0) addAccounts.mutate(handles);
+        }}
         onRemove={(value) => removeAccount.mutate(value)}
         disabled={disabled}
         className="min-h-0 flex-1"
@@ -223,14 +233,25 @@ export function VerifyAccountsButton({ enabled = true }: { enabled?: boolean }) 
 }
 
 /** Bulk-adds every account that one X account follows. */
-export function ImportAccountsDialog() {
+export function ImportAccountsDialog({
+  onImported,
+}: {
+  /** Receives the imported handles, e.g. to animate them into a list. */
+  onImported?: (handles: string[]) => void;
+}) {
   const [open, setOpen] = useState(false);
   const [source, setSource] = useState("");
   const importFollowees = useImportFollowees();
 
   function importAndClose() {
-    importFollowees.mutate(source, {
-      onSuccess: () => {
+    const handle = handleFromInput(source);
+    if (handle === null) {
+      toast.error("This link does not go to a profile.");
+      return;
+    }
+    importFollowees.mutate(handle, {
+      onSuccess: (data) => {
+        onImported?.(data.imported);
         setOpen(false);
         setSource("");
       },
