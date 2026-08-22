@@ -18,6 +18,7 @@ import { Spinner } from "./spinner";
 import { SuggestionChip } from "./account-chip";
 import { TagInput, type TagItem } from "./tag-input";
 import { useAccounts, useAccountSuggestions } from "@/lib/api/queries";
+import { bareHandle } from "@/lib/handles";
 import { cn } from "@/lib/utils";
 import {
   useAddAccounts,
@@ -34,8 +35,6 @@ const SUGGESTIONS_UNTIL_LIST_LENGTH = 5;
 /** Cap on suggestion chips shown at once (multiple survey answers can
  * produce three lists of ten). */
 const MAX_VISIBLE_SUGGESTIONS = 12;
-
-const bareHandle = (value: string) => value.replace(/^@/, "").toLowerCase();
 
 /** The accounts a user follows, tagged with whether we found them on X. */
 export function useAccountTags(enabled: boolean) {
@@ -172,7 +171,20 @@ export function AccountsField({
           </div>
         </div>
       )}
-      {items.length === 0 && !showSuggestions && (
+      {/* While suggestions load, hold their space with skeleton chips —
+          flashing the mascot first and swapping it out reads as a glitch. */}
+      {items.length === 0 && suggestionsQuery.isLoading && (
+        <div className="flex flex-col gap-3 pt-2" aria-hidden="true">
+          <Skeleton className="h-4 w-28" />
+          <div className="flex flex-wrap gap-2">
+            <Skeleton className="h-8 w-24 rounded-full" />
+            <Skeleton className="h-8 w-20 rounded-full" />
+            <Skeleton className="h-8 w-28 rounded-full" />
+            <Skeleton className="h-8 w-24 rounded-full" />
+          </div>
+        </div>
+      )}
+      {items.length === 0 && !showSuggestions && !suggestionsQuery.isLoading && (
         <EmptyState
           className="py-6"
           title="Nobody on the list yet"
