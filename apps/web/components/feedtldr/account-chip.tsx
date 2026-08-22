@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "@phosphor-icons/react";
+import { Plus, X } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 export type AccountState = "verified" | "unverified" | "not_found";
@@ -47,5 +47,28 @@ export function AccountChip({
         </button>
       )}
     </span>
+  );
+}
+
+/** Tappable suggestion: one press moves the handle onto the user's list.
+ * The dashed outline separates it from chips that are already on it. */
+export function SuggestionChip({
+  handle,
+  onAdd,
+  disabled = false,
+}: {
+  handle: string;
+  onAdd: (handle: string) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onAdd(handle)}
+      disabled={disabled}
+      className="focus-ring press inline-flex h-8 items-center gap-1.5 rounded-full border border-dashed ps-2.5 pe-3 text-sm font-medium text-muted-foreground transition-colors duration-150 ease-brand hover:border-solid hover:bg-accent hover:text-foreground disabled:opacity-50"
+    >
+      <Plus className="size-3.5" aria-hidden="true" />@{handle}
+    </button>
   );
 }

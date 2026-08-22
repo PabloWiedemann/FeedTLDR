@@ -51,6 +51,17 @@ export function useAccounts(enabled = true) {
   });
 }
 
+export function useAccountSuggestions(enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.accountSuggestions,
+    enabled,
+    queryFn: async () =>
+      unwrap<{ suggestions: string[] }>(
+        await api.GET("/v1/settings/accounts/suggestions")
+      ),
+  });
+}
+
 export function useSourceData(enabled = true) {
   return useQuery({
     queryKey: queryKeys.sourceData,

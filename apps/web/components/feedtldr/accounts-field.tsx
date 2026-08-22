@@ -15,8 +15,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "./empty-state";
 import { Notice } from "./notice";
 import { Spinner } from "./spinner";
+import { SuggestionChip } from "./account-chip";
 import { TagInput, type TagItem } from "./tag-input";
-import { useAccounts } from "@/lib/api/queries";
+import { useAccounts, useAccountSuggestions } from "@/lib/api/queries";
 import { cn } from "@/lib/utils";
 import {
   useAddAccounts,
@@ -25,6 +26,16 @@ import {
   useRemoveAccount,
   useVerifyAccounts,
 } from "@/lib/api/mutations";
+
+/** Suggestions only help while the list is short; beyond this they are
+ * clutter. */
+const SUGGESTIONS_UNTIL_LIST_LENGTH = 5;
+
+/** Cap on suggestion chips shown at once (multiple survey answers can
+ * produce three lists of ten). */
+const MAX_VISIBLE_SUGGESTIONS = 12;
+
+const bareHandle = (value: string) => value.replace(/^@/, "").toLowerCase();
 
 /** The accounts a user follows, tagged with whether we found them on X. */
 export function useAccountTags(enabled: boolean) {
@@ -97,6 +108,15 @@ export function AccountsField({
   const removeAccount = useRemoveAccount();
   const disabled = addAccounts.isPending || atLimit;
 
+  // Filtered client-side so an added chip leaves the suggestions instantly.
+  const suggestionsQuery = useAccountSuggestions(enabled);
+  const taken = new Set(items.map((item) => bareHandle(item.value)));
+  const suggestions = (suggestionsQuery.data?.suggestions ?? [])
+    .filter((handle) => !taken.has(bareHandle(handle)))
+    .slice(0, MAX_VISIBLE_SUGGESTIONS);
+  const showSuggestions =
+    suggestions.length > 0 && items.length < SUGGESTIONS_UNTIL_LIST_LENGTH;
+
   if (isLoading) {
     return (
       <div className="flex flex-col gap-3">
@@ -135,7 +155,24 @@ export function AccountsField({
           ) : undefined
         }
       />
-      {items.length === 0 && (
+      {showSuggestions && (
+        <div className="flex flex-col gap-3 pt-2">
+          <p className="text-sm font-medium text-muted-foreground">
+            Suggested for you
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {suggestions.map((handle) => (
+              <SuggestionChip
+                key={handle}
+                handle={handle}
+                onAdd={(value) => addAccounts.mutate([value])}
+                disabled={disabled}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+      {items.length === 0 && !showSuggestions && (
         <EmptyState
           className="py-6"
           title="Nobody on the list yet"

@@ -339,6 +339,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/settings/accounts/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Account Suggestions
+         * @description Accounts worth following, picked from the onboarding answers.
+         */
+        get: operations["get_account_suggestions_v1_settings_accounts_suggestions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/settings/accounts/verify": {
         parameters: {
             query?: never;
@@ -387,6 +407,15 @@ export interface components {
             avg_views: number;
             /** Posts */
             posts: number;
+        };
+        /**
+         * AccountSuggestionsResponse
+         * @description Handles worth following, most relevant first, none already on the
+         *     user's list.
+         */
+        AccountSuggestionsResponse: {
+            /** Suggestions */
+            suggestions: string[];
         };
         /** AccountsResponse */
         AccountsResponse: {
@@ -1569,6 +1598,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportAccountsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_account_suggestions_v1_settings_accounts_suggestions_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+                "X-Firebase-AppCheck"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountSuggestionsResponse"];
                 };
             };
             /** @description Validation Error */

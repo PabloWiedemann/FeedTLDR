@@ -29,6 +29,23 @@
         "title": "AccountStat",
         "type": "object"
       },
+      "AccountSuggestionsResponse": {
+        "description": "Handles worth following, most relevant first, none already on the\nuser's list.",
+        "properties": {
+          "suggestions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Suggestions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "suggestions"
+        ],
+        "title": "AccountSuggestionsResponse",
+        "type": "object"
+      },
       "AccountsResponse": {
         "properties": {
           "accounts": {
@@ -2418,6 +2435,66 @@
           }
         },
         "summary": "Import Accounts",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/v1/settings/accounts/suggestions": {
+      "get": {
+        "description": "Accounts worth following, picked from the onboarding answers.",
+        "operationId": "get_account_suggestions_v1_settings_accounts_suggestions_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Firebase-AppCheck",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Firebase-Appcheck"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSuggestionsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Account Suggestions",
         "tags": [
           "settings"
         ]

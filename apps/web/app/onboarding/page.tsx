@@ -371,6 +371,12 @@ export default function OnboardingPage() {
           title="Want your daily summary by email?"
           description="This is optional. Weekday mornings around 7am in your timezone, we send your summary to this address."
         >
+          {!hasAccounts && (
+            <Notice tone="warning">
+              You have no accounts on your list. The newsletter has nothing to
+              summarize, so we will not send emails until you add accounts.
+            </Notice>
+          )}
           <Field>
             <FieldLabel htmlFor="newsletter-email">Newsletter email</FieldLabel>
             <Input

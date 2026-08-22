@@ -127,6 +127,13 @@ class AccountsResponse(BaseModel):
     max_accounts: int
 
 
+class AccountSuggestionsResponse(BaseModel):
+    """Handles worth following, most relevant first, none already on the
+    user's list."""
+
+    suggestions: list[str]
+
+
 class AddAccountsRequest(BaseModel):
     handles: list[str] = Field(min_length=1)
 

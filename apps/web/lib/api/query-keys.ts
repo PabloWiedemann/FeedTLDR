@@ -7,6 +7,7 @@ export const queryKeys = {
   feed: ["feed"],
   settings: ["settings"],
   accounts: ["accounts"],
+  accountSuggestions: ["account-suggestions"],
   sourceData: ["source-data"],
   generationStatus: ["generation-status"],
   generationCost: (fetchLatest: boolean) => ["generation-cost", fetchLatest],
