@@ -77,6 +77,10 @@ Rules: summary prose fills its card; the card's width and padding set the measur
 - Containers: cards, sheet, dialogs, chat bubbles = `rounded-card` (24px, `--radius-card`)
 - Inputs, textareas, popovers, kbd: `rounded-field` (12px, `--radius-field`)
 - Nested surfaces follow concentric radius: outer = inner + padding
+- Open-bucket lip: `bucket-open` — a 45°-bevelled notch clipped out of the
+  accounts bucket's top edge. The bucket follows the app-card convention
+  (border, no shadow): clip-path discards box-shadow, and drop-shadow
+  filters produce repaint artifacts next to animated siblings.
 
 **Borders & elevation:** app cards are `bg-card` with `border border-border` (1px) and no shadow; the app summary card and source-data disclosure are borderless flat white directly on the canvas. Marketing/bento cards are borderless and float on `shadow-card`. Elevation is four tokens and nothing else:
 

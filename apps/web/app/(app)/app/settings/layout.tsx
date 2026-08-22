@@ -27,7 +27,7 @@ export default function SettingsLayout({
         <SettingsNav />
       </div>
       <main className="min-w-0 flex-1 px-4 pb-16 sm:px-6 md:py-10">
-        <div className="mx-auto flex w-full max-w-2xl flex-col gap-8">
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
           {children}
         </div>
       </main>

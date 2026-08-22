@@ -22,29 +22,11 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { AccountsField } from "../accounts-field";
 import { SETTINGS_CARD_HEIGHT, SettingsCard } from "./settings-card";
 import { useSettings } from "@/lib/api/queries";
 import { useUpdateSettings } from "@/lib/api/mutations";
 import { DEFAULT_TIMEZONE, TIMEZONES, timezoneLabel } from "@/lib/timezones";
 import { useSyncedState } from "@/lib/use-synced-state";
-
-/** The X accounts behind the daily summary, with verify/import/clear. */
-export function AccountsCard() {
-  return (
-    <SettingsCard
-      description="Verify checks that each account exists on X."
-      className={SETTINGS_CARD_HEIGHT.accounts}
-      contentClassName="min-h-0 flex-1"
-    >
-      <AccountsField
-        withActions
-        className="min-h-0 flex-1"
-        listClassName="max-h-none min-h-0 flex-1"
-      />
-    </SettingsCard>
-  );
-}
 
 /**
  * Custom AI prompt: read-only until Edit is pressed. While there are

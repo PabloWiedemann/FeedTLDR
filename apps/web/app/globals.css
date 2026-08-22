@@ -200,6 +200,23 @@
   }
 }
 
+/* The accounts bucket's lip (DESIGN.md §4): a 45°-bevelled notch clipped
+   out of the card's top edge. The bucket is a bordered, shadowless app
+   card: clip-path discards box-shadow, and drop-shadow filters glitch
+   when combined with clipping and animated siblings. */
+@utility bucket-open {
+  clip-path: polygon(
+    0 0,
+    22% 0,
+    calc(22% + 1rem) 1rem,
+    calc(78% - 1rem) 1rem,
+    78% 0,
+    100% 0,
+    100% 100%,
+    0 100%
+  );
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

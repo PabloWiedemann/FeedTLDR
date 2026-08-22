@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Article, XLogo } from "@phosphor-icons/react";
+import { Article, Plus, SealCheck, Warning, XLogo } from "@phosphor-icons/react";
+import {
+  AnimatePresence,
+  LayoutGroup,
+  MotionConfig,
+  motion,
+} from "motion/react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,6 +47,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { AccountChip, SuggestionChip } from "@/components/feedtldr/account-chip";
+import {
+  Bucket,
+  BucketCount,
+  CHIP_SPRING,
+  MotionChip,
+  PendingChip,
+} from "@/components/feedtldr/accounts-bucket";
 import { AppBar } from "@/components/feedtldr/app-bar";
 import {
   ChatComposer,
@@ -194,6 +207,75 @@ function Section({
  * `group/panel` + `data-state` the real panel uses so the reveal styles
  * resolve to their open position.
  */
+/**
+ * Interactive flight demo: clicking a suggestion sends its chip flying into
+ * the bucket (shared layoutId), exactly as the real accounts editor does.
+ */
+function BucketFlightDemo() {
+  const ALL = ["karpathy", "paulg", "sama", "naval", "AndrewYNg"];
+  const [added, setAdded] = useState<string[]>([]);
+  const remaining = ALL.filter((handle) => !added.includes(handle));
+
+  return (
+    <MotionConfig reducedMotion="user">
+      <LayoutGroup id="bucket-demo">
+        <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
+          <div className="flex flex-col gap-2.5 rounded-card border bg-background p-5">
+            <p className="text-sm font-medium">Suggested for you</p>
+            <div className="flex flex-wrap gap-2">
+              <AnimatePresence initial={false} mode="popLayout">
+                {remaining.map((handle) => (
+                  <motion.span
+                    key={handle}
+                    layout
+                    layoutId={`demo-${handle}`}
+                    transition={CHIP_SPRING}
+                    className="inline-flex"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setAdded((current) => [...current, handle])}
+                      className="focus-ring press inline-flex h-8 items-center gap-1.5 rounded-full border border-dashed bg-card ps-2.5 pe-3 text-sm font-medium text-muted-foreground transition-colors duration-150 ease-brand hover:border-solid hover:bg-accent hover:text-foreground"
+                    >
+                      <Plus className="size-3.5" aria-hidden="true" />@{handle}
+                    </button>
+                  </motion.span>
+                ))}
+              </AnimatePresence>
+            </div>
+          </div>
+          <Bucket
+            footer={
+              <div className="flex justify-center">
+                <Button variant="outline" size="sm" onClick={() => setAdded([])}>
+                  Reset demo
+                </Button>
+              </div>
+            }
+          >
+            <div className="flex flex-wrap gap-2">
+              <AnimatePresence initial={false} mode="popLayout">
+                {added.map((handle) => (
+                  <MotionChip key={handle} layoutKey={`demo-${handle}`}>
+                    <PendingChip
+                      handle={`@${handle}`}
+                      onRemove={() =>
+                        setAdded((current) =>
+                          current.filter((entry) => entry !== handle)
+                        )
+                      }
+                    />
+                  </MotionChip>
+                ))}
+              </AnimatePresence>
+            </div>
+          </Bucket>
+        </div>
+      </LayoutGroup>
+    </MotionConfig>
+  );
+}
+
 function ChatPreview() {
   const [draft, setDraft] = useState("");
   const [context, setContext] = useState({ posts: true, summary: true });
@@ -430,6 +512,83 @@ export default function DesignGallery() {
             All accounts verified.
           </Notice>
           <Notice tone="error">Verify at least one account first.</Notice>
+        </div>
+      </Section>
+
+      <Section title="Accounts bucket">
+        <div className="flex flex-col gap-8 rounded-card border bg-background p-6">
+          <BucketFlightDemo />
+          {/* Closed (view) states */}
+          <Bucket
+            className="mx-auto w-full max-w-xl"
+            footer={
+              <div className="flex justify-center">
+                <Button>
+                  Add accounts <Plus />
+                </Button>
+              </div>
+            }
+          >
+            <div className="flex flex-1 flex-col items-center justify-center gap-1 py-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                No accounts added yet
+              </p>
+            </div>
+          </Bucket>
+          <Bucket
+            className="mx-auto w-full max-w-xl"
+            footer={
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <BucketCount
+                  icon={<SealCheck aria-hidden="true" />}
+                  count={23}
+                  tooltip="23 accounts are verified to exist on X"
+                />
+                <Button>Edit accounts</Button>
+              </div>
+            }
+          >
+            <div className="flex flex-wrap gap-2">
+              <AccountChip handle="@karpathy" state="verified" />
+              <AccountChip handle="@simonw" state="verified" />
+              <AccountChip handle="@naval" state="verified" />
+            </div>
+          </Bucket>
+          {/* Open (edit) state: verified + invalid + staged chips */}
+          <Bucket
+            className="mx-auto w-full max-w-xl"
+            footer={
+              <div className="flex flex-wrap items-center gap-3">
+                <BucketCount
+                  icon={<SealCheck aria-hidden="true" />}
+                  count={23}
+                  tooltip="23 accounts are verified to exist on X"
+                />
+                <BucketCount
+                  icon={<Warning weight="fill" aria-hidden="true" />}
+                  count={2}
+                  tooltip="2 accounts were not found on X"
+                />
+                <Button variant="ghost" size="sm">
+                  Clear invalid accounts
+                </Button>
+                <div className="ml-auto flex items-center gap-2">
+                  <Button variant="ghost" size="sm">
+                    Cancel
+                  </Button>
+                  <Button size="sm">Save</Button>
+                </div>
+              </div>
+            }
+          >
+            <div className="flex flex-wrap gap-2">
+              <AccountChip handle="@karpathy" state="verified" />
+              <AccountChip handle="@elonmousk" state="not_found" />
+              <AccountChip handle="@elonmusky" state="not_found" />
+              <AccountChip handle="@simonw" state="verified" />
+              <PendingChip handle="@paulg" onRemove={() => {}} />
+            </div>
+          </Bucket>
         </div>
       </Section>
 
